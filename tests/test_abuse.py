@@ -27,14 +27,33 @@ from fundifinder.models import (
 T0 = datetime(2026, 3, 1, 9, 0)
 
 
-def rec(uid, *, fundi=1, rating=5, created=T0, ip="net-a", prefix="+2547000009", reviews=1,
-        review_at=None, fundi_ip="fundi-net", fundi_prefix="+2547000001", fundi_created=None):
+def rec(
+    uid,
+    *,
+    fundi=1,
+    rating=5,
+    created=T0,
+    ip="net-a",
+    prefix="+2547000009",
+    reviews=1,
+    review_at=None,
+    fundi_ip="fundi-net",
+    fundi_prefix="+2547000001",
+    fundi_created=None,
+):
     return ReviewerRecord(
-        review_id=uid, user_id=uid, fundi_id=fundi, rating=rating,
+        review_id=uid,
+        user_id=uid,
+        fundi_id=fundi,
+        rating=rating,
         review_created=review_at or T0 + timedelta(days=30, minutes=uid),
-        account_created=created, ip_hash=ip, phone_prefix=prefix, reviewer_review_count=reviews,
+        account_created=created,
+        ip_hash=ip,
+        phone_prefix=prefix,
+        reviewer_review_count=reviews,
         fundi_account_created=fundi_created or T0 - timedelta(days=300),
-        fundi_ip_hash=fundi_ip, fundi_phone_prefix=fundi_prefix,
+        fundi_ip_hash=fundi_ip,
+        fundi_phone_prefix=fundi_prefix,
     )
 
 
@@ -63,7 +82,10 @@ def test_two_linked_reviewers_are_not_a_ring():
 
 
 def test_unlinked_honest_reviewers_are_not_flagged():
-    honest = [rec(i, created=T0 + timedelta(days=40 * i), ip=f"ip{i}", prefix=f"p{i}") for i in range(1, 12)]
+    honest = [
+        rec(i, created=T0 + timedelta(days=40 * i), ip=f"ip{i}", prefix=f"p{i}")
+        for i in range(1, 12)
+    ]
     assert detect_all(honest) == []
 
 
@@ -101,8 +123,12 @@ def test_signature_is_stable_for_the_same_cluster():
 
 
 def test_self_dealing_needs_two_alt_accounts_with_two_signals_each():
-    own = dict(ip="fundi-net", prefix="+2547000001", created=T0 - timedelta(days=299),
-               fundi_created=T0 - timedelta(days=300))
+    own = dict(
+        ip="fundi-net",
+        prefix="+2547000001",
+        created=T0 - timedelta(days=299),
+        fundi_created=T0 - timedelta(days=300),
+    )
     assert len(detect_self_dealing([rec(1, **own), rec(2, **own)])) == 1
     assert detect_self_dealing([rec(1, **own)]) == []
     just_ip = dict(own, prefix="other", created=T0)
@@ -110,8 +136,12 @@ def test_self_dealing_needs_two_alt_accounts_with_two_signals_each():
 
 
 def test_ring_explained_by_self_dealing_is_not_double_flagged():
-    own = dict(ip="fundi-net", prefix="+2547000001", created=T0 - timedelta(days=299),
-               fundi_created=T0 - timedelta(days=300))
+    own = dict(
+        ip="fundi-net",
+        prefix="+2547000001",
+        created=T0 - timedelta(days=299),
+        fundi_created=T0 - timedelta(days=300),
+    )
     findings = detect_all([rec(i, **own) for i in range(1, 4)])
     assert [f.kind for f in findings] == ["self_review"]
 
@@ -123,11 +153,21 @@ def _ring_world(db):
     cat = make_catalog(db)
     fundi = make_fundi(db, cat, 1)
     created = NOW - timedelta(days=20)
-    accounts = [make_user(db, 10 + i, created=created + timedelta(minutes=i), ip="ringnet",
-                          phone=f"+25470000090{i}") for i in range(4)]
+    accounts = [
+        make_user(
+            db,
+            10 + i,
+            created=created + timedelta(minutes=i),
+            ip="ringnet",
+            phone=f"+25470000090{i}",
+        )
+        for i in range(4)
+    ]
     reviews = []
     for acct in accounts:
-        job = make_job(db, acct, fundi, cat, JobStatus.COMPLETED, scheduled=NOW - timedelta(days=10))
+        job = make_job(
+            db, acct, fundi, cat, JobStatus.COMPLETED, scheduled=NOW - timedelta(days=10)
+        )
         reviews.append(make_review(db, job, 5))
     db.commit()
     return fundi, accounts, reviews

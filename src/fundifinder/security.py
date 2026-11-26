@@ -9,10 +9,11 @@ import threading
 from collections import defaultdict, deque
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar
 
 from flask import Flask, Response, abort, current_app, g, redirect, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.wrappers import Response as BaseResponse
 
 from . import clock
 from .db import get_db
@@ -54,7 +55,10 @@ def _check_csrf() -> None:
     expected = session.get("csrf", "")
     supplied = request.form.get(CSRF_FIELD) or request.headers.get(CSRF_HEADER, "")
     if not expected or not hmac.compare_digest(str(expected), str(supplied)):
-        abort(400, description="Your session expired or the form was tampered with. Reload and try again.")
+        abort(
+            400,
+            description="Your session expired or the form was tampered with. Reload and try again.",
+        )
 
 
 # ---- rate limiting ---------------------------------------------------------------------
@@ -139,9 +143,9 @@ def logout_user() -> None:
     g.user = None
 
 
-def login_required(view: Callable[P, R]) -> Callable[P, R | Response]:
+def login_required(view: Callable[P, R]) -> Callable[P, R | BaseResponse]:
     @wraps(view)
-    def wrapped(*args: P.args, **kwargs: P.kwargs) -> R | Response:
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> R | BaseResponse:
         if current_user() is None:
             return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
         return view(*args, **kwargs)
@@ -149,10 +153,10 @@ def login_required(view: Callable[P, R]) -> Callable[P, R | Response]:
     return wrapped
 
 
-def role_required(*roles: str) -> Callable[[Callable[P, R]], Callable[P, R | Response]]:
-    def decorator(view: Callable[P, R]) -> Callable[P, R | Response]:
+def role_required(*roles: str) -> Callable[[Callable[P, R]], Callable[P, R | BaseResponse]]:
+    def decorator(view: Callable[P, R]) -> Callable[P, R | BaseResponse]:
         @wraps(view)
-        def wrapped(*args: P.args, **kwargs: P.kwargs) -> R | Response:
+        def wrapped(*args: P.args, **kwargs: P.kwargs) -> R | BaseResponse:
             user = current_user()
             if user is None:
                 return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
@@ -193,7 +197,11 @@ def init_security(app: Flask) -> None:
         resp.headers.setdefault("X-Frame-Options", "DENY")
         resp.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         resp.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
-        if request.endpoint and request.endpoint != "static" and "Cache-Control" not in resp.headers:
+        if (
+            request.endpoint
+            and request.endpoint != "static"
+            and "Cache-Control" not in resp.headers
+        ):
             resp.headers["Cache-Control"] = "no-cache"
         return resp
 
@@ -202,9 +210,12 @@ def init_security(app: Flask) -> None:
         from flask import render_template
 
         return (
-            render_template("error.html", code=429, title="Slow down a little",
-                            message=f"Too many attempts. Try again in about {exc.retry_after} seconds."),
+            render_template(
+                "error.html",
+                code=429,
+                title="Slow down a little",
+                message=f"Too many attempts. Try again in about {exc.retry_after} seconds.",
+            ),
             429,
             {"Retry-After": str(exc.retry_after)},
         )
-

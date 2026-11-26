@@ -93,8 +93,17 @@ def test_summary_groups_runs():
 # ---- phones and emails ------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("raw", ["0700 000 001", "0700000001", "+254700000001", "254700000001",
-                                 "0700-000-001", "(0700) 000 001"])
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "0700 000 001",
+        "0700000001",
+        "+254700000001",
+        "254700000001",
+        "0700-000-001",
+        "(0700) 000 001",
+    ],
+)
 def test_phone_normalisation(raw):
     assert normalise_phone(raw) == "+254700000001"
 
@@ -171,7 +180,16 @@ def test_ip_hash_is_keyed_and_stable():
     assert "1.2.3.4" not in ip_hash("1.2.3.4", "a")
 
 
-@pytest.mark.parametrize(("target", "ok"), [("/me", True), ("/search?trade=x", True), ("//evil.com", False),
-                                            ("https://evil.com", False), ("/\\evil", False), (None, False)])
+@pytest.mark.parametrize(
+    ("target", "ok"),
+    [
+        ("/me", True),
+        ("/search?trade=x", True),
+        ("//evil.com", False),
+        ("https://evil.com", False),
+        ("/\\evil", False),
+        (None, False),
+    ],
+)
 def test_safe_next(target, ok):
     assert (safe_next(target) is not None) == ok

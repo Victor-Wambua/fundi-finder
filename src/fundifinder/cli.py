@@ -38,7 +38,9 @@ def register(app: Flask) -> None:
             f"{summary.id_documents} placeholder ID documents, {summary.reports} reports, "
             f"{summary.abuse_flags} abuse flags."
         )
-        click.echo("Demo logins (all synthetic): customer@fundifinder.test, fundi@fundifinder.test,")
+        click.echo(
+            "Demo logins (all synthetic): customer@fundifinder.test, fundi@fundifinder.test,"
+        )
         click.echo(f"admin@fundifinder.test, admin2@fundifinder.test. Password: {DEMO_PASSWORD}")
 
     @app.cli.command("scan-abuse")

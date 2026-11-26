@@ -11,12 +11,12 @@ from fundifinder import marketplace, queries, verification
 from fundifinder.lifecycle import Event
 from fundifinder.marketplace import RuleViolation
 from fundifinder.models import (
+    AuditLog,
     IdStatus,
     JobStatus,
     QuoteStatus,
     RefStatus,
     RequestStatus,
-    AuditLog,
 )
 from fundifinder.sms import ConsoleSms
 from fundifinder.uploads import Storage, UploadError
@@ -31,7 +31,12 @@ def world(db):
 
 def request_for(db, cat, customer, fundi, when=None):
     return marketplace.create_request(
-        db, customer, fundi, cat.job_type.id, cat.area.id, "Tap is leaking badly",
+        db,
+        customer,
+        fundi,
+        cat.job_type.id,
+        cat.area.id,
+        "Tap is leaking badly",
         when or NOW + timedelta(days=2),
     )
 
@@ -66,9 +71,13 @@ def test_unverified_fundi_cannot_quote(db):
 def test_request_must_match_fundis_services_and_areas(world):
     db, cat, customer, fundi = world
     with pytest.raises(RuleViolation, match="area"):
-        marketplace.create_request(db, customer, fundi, cat.job_type.id, cat.area2.id, "x" * 20, NOW + timedelta(days=1))
+        marketplace.create_request(
+            db, customer, fundi, cat.job_type.id, cat.area2.id, "x" * 20, NOW + timedelta(days=1)
+        )
     with pytest.raises(RuleViolation, match="does not offer"):
-        marketplace.create_request(db, customer, fundi, 9999, cat.area.id, "x" * 20, NOW + timedelta(days=1))
+        marketplace.create_request(
+            db, customer, fundi, 9999, cat.area.id, "x" * 20, NOW + timedelta(days=1)
+        )
 
 
 def test_request_in_the_past_refused(world):
@@ -187,7 +196,9 @@ def test_price_benchmark_needs_five_completed_jobs(world):
         make_job(db, customer, fundi, cat, JobStatus.COMPLETED, price=price)
     assert queries.job_type_benchmark(db, cat.job_type.id) is None
     make_job(db, customer, fundi, cat, JobStatus.COMPLETED, price=5000)
-    make_job(db, customer, fundi, cat, JobStatus.CANCELLED, price=999999)  # cancelled jobs never count
+    make_job(
+        db, customer, fundi, cat, JobStatus.CANCELLED, price=999999
+    )  # cancelled jobs never count
     b = queries.job_type_benchmark(db, cat.job_type.id)
     assert b is not None and b.median_kes == 3000 and b.sample_size == 5
 
@@ -198,7 +209,9 @@ def test_search_filters(world):
     assert queries.search_fundis(db, queries.SearchFilters(area_id=cat.area2.id)) == []
     assert queries.search_fundis(db, queries.SearchFilters(min_price=5000)) == []
     assert queries.search_fundis(db, queries.SearchFilters(max_price=500)) == []
-    assert len(queries.search_fundis(db, queries.SearchFilters(min_price=2500, max_price=4000))) == 1
+    assert (
+        len(queries.search_fundis(db, queries.SearchFilters(min_price=2500, max_price=4000))) == 1
+    )
     assert queries.search_fundis(db, queries.SearchFilters(verified_only=True)) == []
 
 
@@ -303,7 +316,9 @@ def test_id_document_review_flow_and_badge(db, tmp_path):
 def test_rejection_needs_a_reason(db, tmp_path):
     cat = make_catalog(db)
     fundi = make_fundi(db, cat, 2)
-    doc = verification.submit_id_document(db, fundi, image_bytes(), "id.png", Storage(tmp_path), 10**6)
+    doc = verification.submit_id_document(
+        db, fundi, image_bytes(), "id.png", Storage(tmp_path), 10**6
+    )
     with pytest.raises(RuleViolation, match="why"):
         verification.review_id_document(db, make_admin(db), doc, False, " ")
 
@@ -319,7 +334,10 @@ def test_two_confirmed_references_earn_the_badge(db):
     cat = make_catalog(db)
     fundi = make_fundi(db, cat, 2)
     sms = ConsoleSms()
-    refs = [verification.add_reference(db, fundi, f"Ref {i}", f"0700 000 10{i}", "", sms, "http://x") for i in range(2)]
+    refs = [
+        verification.add_reference(db, fundi, f"Ref {i}", f"0700 000 10{i}", "", sms, "http://x")
+        for i in range(2)
+    ]
     assert len(sms.outbox) == 2 and refs[0].token in sms.outbox[1].body
     assert "references" not in {b.key.value for b in queries.load_cards(db, [fundi])[0].badges}
     for r in refs:
@@ -334,7 +352,9 @@ def test_declined_references_do_not_count(db):
     fundi = make_fundi(db, cat, 2)
     sms = ConsoleSms()
     for i in range(3):
-        r = verification.add_reference(db, fundi, f"Ref {i}", f"0700 000 20{i}", "", sms, "http://x")
+        r = verification.add_reference(
+            db, fundi, f"Ref {i}", f"0700 000 20{i}", "", sms, "http://x"
+        )
         verification.respond_to_reference(db, r, i == 0)
     assert r.status == RefStatus.DECLINED
     assert "references" not in {b.key.value for b in queries.load_cards(db, [fundi])[0].badges}

@@ -14,7 +14,9 @@ from fundifinder.models import JobStatus
 @pytest.fixture
 def job(db):
     cat = make_catalog(db)
-    return make_job(db, make_user(db, 1), make_fundi(db, cat, 2), cat, JobStatus.AWAITING_CONFIRMATION)
+    return make_job(
+        db, make_user(db, 1), make_fundi(db, cat, 2), cat, JobStatus.AWAITING_CONFIRMATION
+    )
 
 
 def test_code_is_six_digits_and_deterministic():
@@ -92,7 +94,10 @@ def test_ten_total_failures_invalidate_the_code(job):
         check_code(job, wrong, SECRET, t)
         t += timedelta(hours=2)
     assert check_code(job, wrong, SECRET, t).result is CodeResult.INVALIDATED
-    assert check_code(job, code_for(job), SECRET, t + timedelta(days=9)).result is CodeResult.INVALIDATED
+    assert (
+        check_code(job, code_for(job), SECRET, t + timedelta(days=9)).result
+        is CodeResult.INVALIDATED
+    )
 
 
 def test_reissue_gives_a_new_code_and_clears_counters(job):

@@ -99,7 +99,9 @@ def _duplicate_account_flags(db: Session) -> list[AbuseFlag]:
     for net, users in by_net.items():
         users.sort(key=lambda u: u.created_at)
         for i, first in enumerate(users):
-            burst = [u for u in users[i:] if (u.created_at - first.created_at).total_seconds() < 86400]
+            burst = [
+                u for u in users[i:] if (u.created_at - first.created_at).total_seconds() < 86400
+            ]
             if len(burst) < DUPLICATE_ACCOUNTS_PER_NETWORK:
                 continue
             ids = sorted(u.id for u in burst)

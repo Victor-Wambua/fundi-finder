@@ -21,8 +21,12 @@ def test_id_badge_needs_an_approved_document():
 
 def test_references_need_two_distinct_numbers():
     assert BadgeKey.REFERENCES not in keys(confirmed_reference_phones=("+254700000001",))
-    assert BadgeKey.REFERENCES not in keys(confirmed_reference_phones=("+254700000001", "+254700000001"))
-    assert BadgeKey.REFERENCES in keys(confirmed_reference_phones=("+254700000001", "+254700000002"))
+    assert BadgeKey.REFERENCES not in keys(
+        confirmed_reference_phones=("+254700000001", "+254700000001")
+    )
+    assert BadgeKey.REFERENCES in keys(
+        confirmed_reference_phones=("+254700000001", "+254700000002")
+    )
 
 
 def test_own_number_does_not_count_as_a_reference():
@@ -39,8 +43,17 @@ def test_skills_need_three_photos():
 
 
 def test_all_four_badges():
-    assert len(keys(phone_verified=True, id_document_approved=True, portfolio_photo_count=5,
-                    confirmed_reference_phones=("a", "b"))) == 4
+    assert (
+        len(
+            keys(
+                phone_verified=True,
+                id_document_approved=True,
+                portfolio_photo_count=5,
+                confirmed_reference_phones=("a", "b"),
+            )
+        )
+        == 4
+    )
 
 
 def test_each_badge_explains_why_it_was_earned():

@@ -10,7 +10,6 @@ from flask.testing import FlaskClient
 from sqlalchemy.orm import Session
 
 from fundifinder import clock, create_app
-from fundifinder.db import get_db
 
 NOW = datetime(2026, 6, 15, 10, 0, 0)
 SECRET = "test-secret"
@@ -40,16 +39,12 @@ def app(tmp_path: Path) -> Flask:
 
 
 @pytest.fixture
-def ctx(app: Flask) -> Iterator[None]:
-    with app.app_context():
-        yield
-
-
-@pytest.fixture
-def db(app: Flask, ctx: None) -> Iterator[Session]:
-    session = get_db()
+def db(app: Flask) -> Iterator[Session]:
+    """A standalone session (not the request-scoped one), like a second connection."""
+    session = app.extensions["sessionmaker"]()
     yield session
     session.rollback()
+    session.close()
 
 
 @pytest.fixture
@@ -73,7 +68,7 @@ def seeded_app(tmp_path_factory: pytest.TempPathFactory) -> Flask:
 
 @pytest.fixture
 def seeded_db(seeded_app: Flask) -> Iterator[Session]:
-    with seeded_app.app_context():
-        session = get_db()
-        yield session
-        session.rollback()
+    session = seeded_app.extensions["sessionmaker"]()
+    yield session
+    session.rollback()
+    session.close()

@@ -106,9 +106,7 @@ class User(Base):
     suspended_reason: Mapped[str | None] = mapped_column(String(200))
     is_synthetic: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    fundi_profile: Mapped[FundiProfile | None] = relationship(
-        back_populates="user", uselist=False
-    )
+    fundi_profile: Mapped[FundiProfile | None] = relationship(back_populates="user", uselist=False)
 
     @property
     def is_admin(self) -> bool:

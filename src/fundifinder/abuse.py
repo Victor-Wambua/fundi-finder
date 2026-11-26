@@ -138,7 +138,12 @@ def detect_self_dealing(records: Sequence[ReviewerRecord]) -> list[Finding]:
             continue
         all_signals = sorted({s for _, sig in items for s in sig})
         recs = [r for r, _ in items]
-        score = min(100, 55 + 10 * min(len(recs) - MIN_SELF_DEALING, 4) + (15 if all(r.rating >= 4 for r in recs) else 0))
+        score = min(
+            100,
+            55
+            + 10 * min(len(recs) - MIN_SELF_DEALING, 4)
+            + (15 if all(r.rating >= 4 for r in recs) else 0),
+        )
         findings.append(
             Finding(
                 kind="self_review",

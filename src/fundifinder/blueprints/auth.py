@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask.typing import ResponseReturnValue
 from sqlalchemy import select
 
@@ -15,7 +24,6 @@ from ..models import FundiProfile, Role, Trade, User
 from ..phones import canonical_email
 from ..security import (
     client_key,
-    current_user,
     hash_password,
     ip_hash,
     login_required,
@@ -78,7 +86,9 @@ def signup() -> ResponseReturnValue:
             session.add(user)
             session.flush()
             if role == Role.FUNDI.value and trade_id:
-                session.add(FundiProfile(user_id=user.id, trade_id=trade_id, created_at=clock.now()))
+                session.add(
+                    FundiProfile(user_id=user.id, trade_id=trade_id, created_at=clock.now())
+                )
             session.commit()
             login_user(user)
             flash("Welcome to Fundi Finder. Verify your phone number to get started.", "ok")
@@ -133,7 +143,9 @@ def _otp_context(sent: bool = False, error: str = "") -> dict[str, Any]:
 
 
 def _after_verify() -> str:
-    return safe_next(request.args.get("next") or request.form.get("next")) or home_for(require_user())
+    return safe_next(request.args.get("next") or request.form.get("next")) or home_for(
+        require_user()
+    )
 
 
 @bp.get("/verify-phone")
@@ -183,4 +195,3 @@ def check_code() -> ResponseReturnValue:
     if is_htmx():
         return render_template("auth/_otp.html", **ctx)
     return render_template("auth/verify_phone.html", **ctx), 400
-

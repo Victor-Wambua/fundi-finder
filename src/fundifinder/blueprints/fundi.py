@@ -67,14 +67,23 @@ def dashboard() -> ResponseReturnValue:
     completed = [j for j in jobs if j.status == JobStatus.COMPLETED and j.completed_at]
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     earnings = {
-        "month": sum(j.price_kes for j in completed if j.completed_at and j.completed_at >= month_start),
-        "d90": sum(j.price_kes for j in completed if j.completed_at and j.completed_at >= now - timedelta(days=90)),
+        "month": sum(
+            j.price_kes for j in completed if j.completed_at and j.completed_at >= month_start
+        ),
+        "d90": sum(
+            j.price_kes
+            for j in completed
+            if j.completed_at and j.completed_at >= now - timedelta(days=90)
+        ),
         "all": sum(j.price_kes for j in completed),
         "pending": sum(j.price_kes for j in jobs if j.status == JobStatus.AWAITING_CONFIRMATION),
-        "booked": sum(j.price_kes for j in jobs if j.status in (JobStatus.BOOKED, JobStatus.IN_PROGRESS)),
+        "booked": sum(
+            j.price_kes for j in jobs if j.status in (JobStatus.BOOKED, JobStatus.IN_PROGRESS)
+        ),
     }
     open_requests = [
-        r for r in marketplace.list_requests_for_fundi(session, profile.id)
+        r
+        for r in marketplace.list_requests_for_fundi(session, profile.id)
         if r.status == RequestStatus.OPEN
     ]
     upcoming = sorted(
@@ -159,7 +168,10 @@ def service_save() -> ResponseReturnValue:
     session = db()
     profile = me()
     f = Form(request.form)
-    valid = {str(j.id) for j in session.scalars(select(JobType).where(JobType.trade_id == profile.trade_id))}
+    valid = {
+        str(j.id)
+        for j in session.scalars(select(JobType).where(JobType.trade_id == profile.trade_id))
+    }
     jt = int(f.choice("job_type", "job", valid) or 0)
     low = f.integer("price_min", "Lowest price", 100, 5_000_000)
     high = f.integer("price_max", "Highest price", 100, 5_000_000)
@@ -212,8 +224,12 @@ def availability() -> ResponseReturnValue:
             if not (0 <= start < end <= 24):
                 flash(f"{WEEKDAYS[day]}: the finish time must be after the start time.", "error")
                 return redirect(url_for("fundi.availability"))
-            rules.append(AvailabilityRule(fundi_id=profile.id, weekday=day, start_hour=start, end_hour=end))
-        for old in session.scalars(select(AvailabilityRule).where(AvailabilityRule.fundi_id == profile.id)):
+            rules.append(
+                AvailabilityRule(fundi_id=profile.id, weekday=day, start_hour=start, end_hour=end)
+            )
+        for old in session.scalars(
+            select(AvailabilityRule).where(AvailabilityRule.fundi_id == profile.id)
+        ):
             session.delete(old)
         session.flush()
         session.add_all(rules)
@@ -222,12 +238,17 @@ def availability() -> ResponseReturnValue:
         return redirect(url_for("fundi.availability"))
     rules_by_day = {
         r.weekday: r
-        for r in session.scalars(select(AvailabilityRule).where(AvailabilityRule.fundi_id == profile.id))
+        for r in session.scalars(
+            select(AvailabilityRule).where(AvailabilityRule.fundi_id == profile.id)
+        )
     }
     exceptions = list(
         session.scalars(
             select(AvailabilityException)
-            .where(AvailabilityException.fundi_id == profile.id, AvailabilityException.day >= clock.now().date())
+            .where(
+                AvailabilityException.fundi_id == profile.id,
+                AvailabilityException.day >= clock.now().date(),
+            )
             .order_by(AvailabilityException.day)
         )
     )
@@ -258,7 +279,9 @@ def exception_add() -> ResponseReturnValue:
         if existing:
             existing.available, existing.note = available, note
         else:
-            session.add(AvailabilityException(fundi_id=profile.id, day=day, available=available, note=note))
+            session.add(
+                AvailabilityException(fundi_id=profile.id, day=day, available=available, note=note)
+            )
         session.commit()
         flash("Date saved.", "ok")
     return redirect(url_for("fundi.availability"))
@@ -286,7 +309,8 @@ def portfolio() -> ResponseReturnValue:
     if request.method == "POST":
         rate_limit("portfolio", str(profile.id), 20, 3600)
         caption = (request.form.get("caption") or "").strip()[:140]
-        if read_upload("photo") is None:
+        upload = request.files.get("photo")
+        if upload is None or not upload.filename:
             flash("Choose a photo to upload.", "error")
         elif len(profile.photos) >= 12:
             flash("You can keep up to 12 portfolio photos.", "error")
@@ -323,7 +347,11 @@ def verification_page() -> ResponseReturnValue:
     profile = me()
     card = queries.load_cards(session, [profile])[0]
     docs = list(
-        session.scalars(select(IdDocument).where(IdDocument.fundi_id == profile.id).order_by(IdDocument.id.desc()))
+        session.scalars(
+            select(IdDocument)
+            .where(IdDocument.fundi_id == profile.id)
+            .order_by(IdDocument.id.desc())
+        )
     )
     refs = list(session.scalars(select(Reference).where(Reference.fundi_id == profile.id)))
     return render_template("fundi/verification.html", card=card, docs=docs, refs=refs, p=profile)
@@ -344,7 +372,10 @@ def id_upload() -> ResponseReturnValue:
             db(), profile, data, filename, storage(), int(current_app.config["MAX_UPLOAD_BYTES"])
         )
         db().commit()
-        flash("Document received. An admin will review it. It is stored privately and never shown on your profile.", "ok")
+        flash(
+            "Document received. An admin will review it. It is stored privately and never shown on your profile.",
+            "ok",
+        )
     except (UploadError, RuleViolation) as exc:
         db().rollback()
         flash(str(exc), "error")
@@ -364,8 +395,13 @@ def reference_add() -> ResponseReturnValue:
         return redirect(url_for("fundi.verification_page"))
     try:
         verification.add_reference(
-            db(), profile, name, request.form.get("phone", ""), note,
-            current_app.extensions["sms"], request.host_url.rstrip("/"),
+            db(),
+            profile,
+            name,
+            request.form.get("phone", ""),
+            note,
+            current_app.extensions["sms"],
+            request.host_url.rstrip("/"),
         )
         db().commit()
         flash("Reference added. They have been sent an SMS asking them to confirm.", "ok")
@@ -400,8 +436,13 @@ def request_detail(request_id: int) -> ResponseReturnValue:
     bench = queries.job_type_benchmark(db(), req.job_type_id)
     default_start = max(req.preferred_time, clock.now() + timedelta(hours=2))
     return render_template(
-        "fundi/request_detail.html", req=req, service=service, bench=bench,
-        default_start=default_start, errors={}, form={},
+        "fundi/request_detail.html",
+        req=req,
+        service=service,
+        bench=bench,
+        default_start=default_start,
+        errors={},
+        form={},
     )
 
 
@@ -425,9 +466,13 @@ def send_quote(request_id: int) -> ResponseReturnValue:
             f.errors["amount"] = str(exc)
     service = next((s for s in me().services if s.job_type_id == req.job_type_id), None)
     return render_template(
-        "fundi/request_detail.html", req=req, service=service,
+        "fundi/request_detail.html",
+        req=req,
+        service=service,
         bench=queries.job_type_benchmark(db(), req.job_type_id),
-        default_start=clock.now() + timedelta(hours=2), errors=f.errors, form=dict(request.form),
+        default_start=clock.now() + timedelta(hours=2),
+        errors=f.errors,
+        form=dict(request.form),
     ), 400
 
 
@@ -496,7 +541,8 @@ def start(job_id: int) -> ResponseReturnValue:
 @role_required(Role.FUNDI)
 def mark_complete(job_id: int) -> ResponseReturnValue:
     return _event(
-        job_id, Event.MARK_COMPLETE,
+        job_id,
+        Event.MARK_COMPLETE,
         "Marked complete. Now ask the customer for their completion code.",
     )
 
@@ -522,7 +568,10 @@ def enter_code(job_id: int) -> ResponseReturnValue:
     if result.result is CodeResult.OK:
         flash("Confirmed. The job is complete and the customer can now review it.", "ok")
     elif result.result is CodeResult.WRONG:
-        flash(f"That code is not right. {result.attempts_left} attempt(s) left before a lockout.", "error")
+        flash(
+            f"That code is not right. {result.attempts_left} attempt(s) left before a lockout.",
+            "error",
+        )
     elif result.result is CodeResult.LOCKED:
         flash("Too many wrong codes. Entry is locked for an hour.", "error")
     elif result.result is CodeResult.INVALIDATED:
@@ -562,4 +611,3 @@ def reply(review_id: int) -> ResponseReturnValue:
     except RuleViolation as exc:
         rule_error(exc)
     return redirect(url_for("fundi.reviews_page"))
-

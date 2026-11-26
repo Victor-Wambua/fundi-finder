@@ -105,7 +105,9 @@ def send_quote(
     if req.status not in (RequestStatus.OPEN, RequestStatus.QUOTED):
         raise RuleViolation("This request is closed.")
     if not MIN_QUOTE_KES <= amount_kes <= MAX_QUOTE_KES:
-        raise RuleViolation(f"A quote must be between KES {MIN_QUOTE_KES:,} and KES {MAX_QUOTE_KES:,}.")
+        raise RuleViolation(
+            f"A quote must be between KES {MIN_QUOTE_KES:,} and KES {MAX_QUOTE_KES:,}."
+        )
     if proposed_start < now:
         raise RuleViolation("Propose a start time in the future.")
     for old in _sent_quotes(db, req):

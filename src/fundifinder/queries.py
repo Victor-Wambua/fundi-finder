@@ -27,8 +27,8 @@ from .models import (
     JobStatus,
     PortfolioPhoto,
     QuoteRequest,
-    RefStatus,
     Reference,
+    RefStatus,
     RequestStatus,
     Review,
     ReviewStatus,
@@ -167,7 +167,9 @@ def load_cards(
     ):
         refs[fid].append(phone)
     photos: dict[int, int] = defaultdict(int)
-    for (fid,) in db.execute(select(PortfolioPhoto.fundi_id).where(PortfolioPhoto.fundi_id.in_(ids))):
+    for (fid,) in db.execute(
+        select(PortfolioPhoto.fundi_id).where(PortfolioPhoto.fundi_id.in_(ids))
+    ):
         photos[fid] += 1
 
     rules: dict[int, list[WeeklyRule]] = defaultdict(list)
@@ -200,7 +202,7 @@ def load_cards(
             punctual_jobs=punct_ok[p.id],
             badge_count=len(badges),
         )
-        hist = {star: 0 for star in range(5, 0, -1)}
+        hist = dict.fromkeys(range(5, 0, -1), 0)
         for s in sigs:
             hist[s.rating] += 1
         prices = [(s.price_min_kes, s.price_max_kes) for s in p.services]

@@ -17,8 +17,8 @@ from .models import (
     IdDocument,
     IdStatus,
     PhoneOtp,
-    RefStatus,
     Reference,
+    RefStatus,
     Role,
     User,
 )
@@ -63,7 +63,9 @@ def send_otp(db: Session, user: User, sms: SmsProvider, secret: str) -> None:
             expires_at=now + OTP_TTL,
         )
     )
-    sms.send(user.phone, f"Fundi Finder: your verification code is {code}. It expires in 10 minutes.")
+    sms.send(
+        user.phone, f"Fundi Finder: your verification code is {code}. It expires in 10 minutes."
+    )
 
 
 def check_otp(db: Session, user: User, code: str, secret: str) -> bool:
@@ -93,7 +95,11 @@ def check_otp(db: Session, user: User, code: str, secret: str) -> bool:
 
 
 def submit_id_document(
-    db: Session, profile: FundiProfile, data: bytes, filename: str | None, storage: Storage,
+    db: Session,
+    profile: FundiProfile,
+    data: bytes,
+    filename: str | None,
+    storage: Storage,
     max_bytes: int,
 ) -> IdDocument:
     pending = db.scalar(
@@ -142,8 +148,13 @@ def review_id_document(db: Session, admin: User, doc: IdDocument, approve: bool,
 
 
 def add_reference(
-    db: Session, profile: FundiProfile, name: str, phone_raw: str, note: str,
-    sms: SmsProvider, base_url: str,
+    db: Session,
+    profile: FundiProfile,
+    name: str,
+    phone_raw: str,
+    note: str,
+    sms: SmsProvider,
+    base_url: str,
 ) -> Reference:
     phone = normalise_phone(phone_raw)
     if phone is None:

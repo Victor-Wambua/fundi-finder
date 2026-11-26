@@ -5,7 +5,15 @@ from datetime import timedelta
 import pytest
 
 from conftest import NOW, SECRET
-from factories import code_for, make_admin, make_catalog, make_fundi, make_job, make_review, make_user
+from factories import (
+    code_for,
+    make_admin,
+    make_catalog,
+    make_fundi,
+    make_job,
+    make_review,
+    make_user,
+)
 from fundifinder import clock, marketplace, moderation, reviews
 from fundifinder.completion import CodeResult
 from fundifinder.marketplace import RuleViolation
@@ -23,8 +31,16 @@ def world(db):
 # ---- the review gate --------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("status", [JobStatus.BOOKED, JobStatus.IN_PROGRESS,
-                                    JobStatus.AWAITING_CONFIRMATION, JobStatus.CANCELLED, JobStatus.NO_SHOW])
+@pytest.mark.parametrize(
+    "status",
+    [
+        JobStatus.BOOKED,
+        JobStatus.IN_PROGRESS,
+        JobStatus.AWAITING_CONFIRMATION,
+        JobStatus.CANCELLED,
+        JobStatus.NO_SHOW,
+    ],
+)
 def test_cannot_review_a_job_that_is_not_completed(world, status):
     db, cat, customer, _, fundi = world
     job = make_job(db, customer, fundi, cat, status)
@@ -44,7 +60,9 @@ def test_cannot_review_after_wrong_codes_only(world):
     db, cat, customer, _, fundi = world
     job = make_job(db, customer, fundi, cat, JobStatus.AWAITING_CONFIRMATION)
     for _ in range(3):
-        marketplace.confirm_completion(db, customer, job, "000000" if code_for(job) != "000000" else "111111", SECRET)
+        marketplace.confirm_completion(
+            db, customer, job, "000000" if code_for(job) != "000000" else "111111", SECRET
+        )
     assert reviews.review_block_reason(db, customer, job) is not None
 
 
@@ -91,7 +109,9 @@ def test_rating_must_be_1_to_5(world):
 
 def test_review_window_closes_after_30_days(world):
     db, cat, customer, _, fundi = world
-    job = make_job(db, customer, fundi, cat, JobStatus.COMPLETED, scheduled=NOW - timedelta(days=31))
+    job = make_job(
+        db, customer, fundi, cat, JobStatus.COMPLETED, scheduled=NOW - timedelta(days=31)
+    )
     with pytest.raises(RuleViolation, match="30-day"):
         reviews.create_review(db, customer, job, 5, "late")
 
@@ -151,7 +171,10 @@ def test_blank_reply_refused(world):
 def test_fundi_can_enter_the_code_the_customer_reads_out(world):
     db, cat, customer, _, fundi = world
     job = make_job(db, customer, fundi, cat, JobStatus.AWAITING_CONFIRMATION)
-    assert marketplace.confirm_completion(db, fundi.user, job, code_for(job), SECRET).result is CodeResult.OK
+    assert (
+        marketplace.confirm_completion(db, fundi.user, job, code_for(job), SECRET).result
+        is CodeResult.OK
+    )
     assert job.code_confirmed_by == "fundi"
 
 

@@ -18,7 +18,9 @@ def csrf(client: FlaskClient) -> str:
     return str(token)
 
 
-def post(client: FlaskClient, url: str, data: dict[str, Any] | None = None, **kw: Any) -> TestResponse:
+def post(
+    client: FlaskClient, url: str, data: dict[str, Any] | None = None, **kw: Any
+) -> TestResponse:
     payload = dict(data or {})
     payload.setdefault("csrf_token", csrf(client))
     return client.post(url, data=payload, **kw)

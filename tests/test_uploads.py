@@ -6,8 +6,8 @@ import pytest
 from PIL import Image
 
 from fundifinder.uploads import (
-    UploadError,
     Storage,
+    UploadError,
     mime_for,
     sanitise_image,
     sniff_kind,
@@ -19,8 +19,15 @@ from imgs import image_bytes
 LIMIT = 5 * 1024 * 1024
 
 
-@pytest.mark.parametrize(("fmt", "name", "kind"), [("PNG", "a.png", "png"), ("JPEG", "a.jpg", "jpg"),
-                                                    ("JPEG", "a.JPEG", "jpg"), ("WEBP", "a.webp", "webp")])
+@pytest.mark.parametrize(
+    ("fmt", "name", "kind"),
+    [
+        ("PNG", "a.png", "png"),
+        ("JPEG", "a.jpg", "jpg"),
+        ("JPEG", "a.JPEG", "jpg"),
+        ("WEBP", "a.webp", "webp"),
+    ],
+)
 def test_valid_images_are_accepted(fmt, name, kind):
     info = validate_image(image_bytes(fmt), name, LIMIT)
     assert info.kind == kind and (info.width, info.height) == (40, 30)
@@ -40,8 +47,16 @@ def test_oversize_rejected_before_anything_else():
         validate_image(b"x" * 101, "a.png", 100)
 
 
-@pytest.mark.parametrize("payload", [b"<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
-                                     b"<?php echo 1;", b"%PDF-1.4 fake", b"GIF89a....", b"MZ\x90\x00"])
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b"<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+        b"<?php echo 1;",
+        b"%PDF-1.4 fake",
+        b"GIF89a....",
+        b"MZ\x90\x00",
+    ],
+)
 def test_non_images_rejected_by_magic_bytes(payload):
     with pytest.raises(UploadError, match="PNG, JPEG or WebP"):
         validate_image(payload, "photo.png", LIMIT)
@@ -99,7 +114,9 @@ def test_storage_uses_random_names_and_strict_lookup(tmp_path):
     assert storage.path("public", name) is None
 
 
-@pytest.mark.parametrize("bad", ["../etc/passwd", "..%2f..%2fx.png", "a.png", "x" * 32 + ".svg", "/abs.png", ""])
+@pytest.mark.parametrize(
+    "bad", ["../etc/passwd", "..%2f..%2fx.png", "a.png", "x" * 32 + ".svg", "/abs.png", ""]
+)
 def test_storage_rejects_traversal_and_unknown_names(tmp_path, bad):
     storage = Storage(tmp_path)
     assert storage.path("private", bad) is None

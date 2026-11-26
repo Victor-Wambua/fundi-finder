@@ -89,7 +89,7 @@ def platform_mean(reviews: Sequence[ReviewSignal]) -> float:
 
 def recency_weight(age_days: float, params: RankParams = DEFAULT_PARAMS) -> float:
     age = max(0.0, age_days)
-    return max(params.recency_floor, 0.5 ** (age / params.half_life_days))
+    return float(max(params.recency_floor, 0.5 ** (age / params.half_life_days)))
 
 
 def bayesian_mean(
@@ -119,7 +119,9 @@ def score_fundi(
     mean, effective = bayesian_mean(stats.reviews, prior_mean, params)
     quality = (mean - 1.0) / 4.0
     volume = 1.0 - math.exp(-max(0, stats.completed_jobs) / params.volume_scale)
-    response = _smoothed(stats.requests_answered_in_time, stats.requests_answerable, params.response_prior)
+    response = _smoothed(
+        stats.requests_answered_in_time, stats.requests_answerable, params.response_prior
+    )
     punctuality = _smoothed(stats.punctual_jobs, stats.punctual_eligible, params.punctual_prior)
     verification = min(4, max(0, stats.badge_count)) / 4.0
     score = 100.0 * (

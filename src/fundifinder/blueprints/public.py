@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from urllib.parse import urlencode
+
 from flask import (
     Blueprint,
     Response,
@@ -27,15 +29,15 @@ from ..models import (
     FundiProfile,
     Job,
     JobStatus,
-    RefStatus,
     Reference,
+    RefStatus,
     Review,
     ReviewStatus,
     Trade,
 )
 from ..phones import display_phone, tel_url, whatsapp_url
 from ..ranking import wilson_lower_bound
-from ..security import current_user, rate_limit, client_key
+from ..security import client_key, current_user, rate_limit
 from ..sms import ConsoleSms
 from ..uploads import mime_for
 from ..verification import respond_to_reference
@@ -93,7 +95,7 @@ def search() -> ResponseReturnValue:
         "cards": cards,
         "total": len(all_cards),
         "has_more": page * PAGE_SIZE < len(all_cards),
-        "next_url": url_for("public.search", page=page + 1, **next_args),
+        "next_url": url_for("public.search") + "?" + urlencode({**next_args, "page": page + 1}),
         "trade": trade,
         "area": area,
         "filters": filters,
@@ -143,7 +145,11 @@ def profile(fundi_id: int) -> ResponseReturnValue:
     contact = p.whatsapp or p.user.phone
     all_badges = [
         ("phone", "Phone verified", "A one-time code was sent by SMS and entered."),
-        ("id", "ID checked", "An admin reviewed an identity document. The document is never shown."),
+        (
+            "id",
+            "ID checked",
+            "An admin reviewed an identity document. The document is never shown.",
+        ),
         ("references", "References", "Two or more past customers confirmed they hired this fundi."),
         ("skills", "Trade skills", "Three or more photos of their own work."),
     ]
@@ -211,4 +217,3 @@ def dev_outbox() -> ResponseReturnValue:
 @bp.get("/healthz")
 def healthz() -> Response:
     return Response("ok", mimetype="text/plain")
-

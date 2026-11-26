@@ -37,7 +37,7 @@ from ..models import (
     Review,
     Role,
 )
-from ..security import client_key, login_required, rate_limit, role_required
+from ..security import login_required, rate_limit, role_required
 from ..uploads import mime_for
 from ..web import db, get_or_404, require_user, rule_error, save_upload_or_flash, secret, storage
 
@@ -81,7 +81,10 @@ def new_request() -> ResponseReturnValue:
                     session, user, profile, job_type_id, area_id, description, when, photo_name
                 )
                 session.commit()
-                flash(f"Request sent to {profile.user.first_name}. You will see their quote here.", "ok")
+                flash(
+                    f"Request sent to {profile.user.first_name}. You will see their quote here.",
+                    "ok",
+                )
                 return redirect(url_for("customer.request_detail", request_id=req.id))
             except RuleViolation as exc:
                 session.rollback()
@@ -111,15 +114,22 @@ def activity() -> ResponseReturnValue:
         session.scalars(
             select(Job)
             .where(Job.customer_id == user.id)
-            .options(selectinload(Job.fundi).selectinload(FundiProfile.user), selectinload(Job.review))
+            .options(
+                selectinload(Job.fundi).selectinload(FundiProfile.user), selectinload(Job.review)
+            )
             .order_by(Job.scheduled_for.desc())
         )
     )
     requests_ = list(
         session.scalars(
             select(QuoteRequest)
-            .where(QuoteRequest.customer_id == user.id, QuoteRequest.status != RequestStatus.ACCEPTED)
-            .options(selectinload(QuoteRequest.fundi).selectinload(FundiProfile.user), selectinload(QuoteRequest.quotes))
+            .where(
+                QuoteRequest.customer_id == user.id, QuoteRequest.status != RequestStatus.ACCEPTED
+            )
+            .options(
+                selectinload(QuoteRequest.fundi).selectinload(FundiProfile.user),
+                selectinload(QuoteRequest.quotes),
+            )
             .order_by(QuoteRequest.created_at.desc())
         )
     )
@@ -195,7 +205,9 @@ def job_detail(job_id: int) -> ResponseReturnValue:
         job=job,
         steps=STEPS,
         current=current,
-        code=derive_code(secret(), job.code_salt) if show_code and not job.code_invalidated else None,
+        code=derive_code(secret(), job.code_salt)
+        if show_code and not job.code_invalidated
+        else None,
         can_review=block is None,
         review_block=block,
         can_edit_review=can_edit_review,
@@ -224,9 +236,15 @@ def confirm(job_id: int) -> ResponseReturnValue:
 def _flash_code_result(result: CodeResult, attempts_left: int) -> None:
     messages = {
         CodeResult.OK: ("Confirmed. The job is complete, and you can now leave a review.", "ok"),
-        CodeResult.WRONG: (f"That code is not right. {attempts_left} attempt(s) left before a lockout.", "error"),
+        CodeResult.WRONG: (
+            f"That code is not right. {attempts_left} attempt(s) left before a lockout.",
+            "error",
+        ),
         CodeResult.LOCKED: ("Too many wrong codes. Entry is locked for an hour.", "error"),
-        CodeResult.INVALIDATED: ("This code has been disabled after too many wrong attempts. Support must re-issue it.", "error"),
+        CodeResult.INVALIDATED: (
+            "This code has been disabled after too many wrong attempts. Support must re-issue it.",
+            "error",
+        ),
         CodeResult.USED: ("This code has already been used.", "error"),
     }
     text, cat = messages[result]
@@ -238,7 +256,9 @@ def _flash_code_result(result: CodeResult, attempts_left: int) -> None:
 def cancel_job(job_id: int) -> ResponseReturnValue:
     job = _own_job(job_id)
     try:
-        marketplace.apply_event(db(), require_user(), job, Event.CANCEL, request.form.get("reason", ""))
+        marketplace.apply_event(
+            db(), require_user(), job, Event.CANCEL, request.form.get("reason", "")
+        )
         db().commit()
         flash("Job cancelled.", "ok")
     except RuleViolation as exc:

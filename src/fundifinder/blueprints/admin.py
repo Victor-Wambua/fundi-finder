@@ -42,21 +42,48 @@ def dashboard() -> ResponseReturnValue:
         return int(s.scalar(stmt) or 0)  # type: ignore[call-overload]
 
     stats = {
-        "customers": count(select(func.count()).select_from(User).where(User.role == Role.CUSTOMER)),
+        "customers": count(
+            select(func.count()).select_from(User).where(User.role == Role.CUSTOMER)
+        ),
         "fundis": count(select(func.count()).select_from(FundiProfile)),
-        "suspended": count(select(func.count()).select_from(User).where(User.is_suspended.is_(True))),
+        "suspended": count(
+            select(func.count()).select_from(User).where(User.is_suspended.is_(True))
+        ),
         "jobs_total": count(select(func.count()).select_from(Job)),
-        "jobs_completed": count(select(func.count()).select_from(Job).where(Job.status == JobStatus.COMPLETED)),
-        "reviews": count(select(func.count()).select_from(Review).where(Review.status == ReviewStatus.PUBLISHED)),
-        "removed": count(select(func.count()).select_from(Review).where(Review.status == ReviewStatus.REMOVED)),
-        "avg_rating": float(s.scalar(select(func.avg(Review.rating)).where(Review.status == ReviewStatus.PUBLISHED)) or 0),
+        "jobs_completed": count(
+            select(func.count()).select_from(Job).where(Job.status == JobStatus.COMPLETED)
+        ),
+        "reviews": count(
+            select(func.count()).select_from(Review).where(Review.status == ReviewStatus.PUBLISHED)
+        ),
+        "removed": count(
+            select(func.count()).select_from(Review).where(Review.status == ReviewStatus.REMOVED)
+        ),
+        "avg_rating": float(
+            s.scalar(select(func.avg(Review.rating)).where(Review.status == ReviewStatus.PUBLISHED))
+            or 0
+        ),
     }
     queues = {
-        "ids": count(select(func.count()).select_from(IdDocument).where(IdDocument.status == IdStatus.PENDING)),
-        "reports": count(select(func.count()).select_from(Report).where(Report.status == ReportStatus.OPEN)),
-        "appeals": count(select(func.count()).select_from(Report).where(Report.appeal_status == AppealStatus.PENDING)),
-        "flags": count(select(func.count()).select_from(AbuseFlag).where(AbuseFlag.status == FlagStatus.OPEN)),
-        "locked": count(select(func.count()).select_from(Job).where(Job.code_invalidated.is_(True))),
+        "ids": count(
+            select(func.count())
+            .select_from(IdDocument)
+            .where(IdDocument.status == IdStatus.PENDING)
+        ),
+        "reports": count(
+            select(func.count()).select_from(Report).where(Report.status == ReportStatus.OPEN)
+        ),
+        "appeals": count(
+            select(func.count())
+            .select_from(Report)
+            .where(Report.appeal_status == AppealStatus.PENDING)
+        ),
+        "flags": count(
+            select(func.count()).select_from(AbuseFlag).where(AbuseFlag.status == FlagStatus.OPEN)
+        ),
+        "locked": count(
+            select(func.count()).select_from(Job).where(Job.code_invalidated.is_(True))
+        ),
     }
     by_status = dict(s.execute(select(Job.status, func.count()).group_by(Job.status)).all())
     return render_template("admin/dashboard.html", stats=stats, queues=queues, by_status=by_status)
@@ -118,7 +145,9 @@ def verification_decide(doc_id: int) -> ResponseReturnValue:
     doc = get_or_404(db(), IdDocument, doc_id)
     approve = request.form.get("decision") == "approve"
     try:
-        verification.review_id_document(db(), require_user(), doc, approve, request.form.get("note", ""))
+        verification.review_id_document(
+            db(), require_user(), doc, approve, request.form.get("note", "")
+        )
         db().commit()
         flash("Document approved." if approve else "Document rejected.", "ok")
         return redirect(url_for("admin.verification_queue"))
@@ -141,20 +170,35 @@ def reports() -> ResponseReturnValue:
         selectinload(Report.reporter),
     )
     open_reports = list(
-        s.scalars(select(Report).where(Report.status == ReportStatus.OPEN).options(*opts).order_by(Report.created_at))
+        s.scalars(
+            select(Report)
+            .where(Report.status == ReportStatus.OPEN)
+            .options(*opts)
+            .order_by(Report.created_at)
+        )
     )
     appeals = list(
         s.scalars(
-            select(Report).where(Report.appeal_status == AppealStatus.PENDING).options(*opts).order_by(Report.appeal_at)
+            select(Report)
+            .where(Report.appeal_status == AppealStatus.PENDING)
+            .options(*opts)
+            .order_by(Report.appeal_at)
         )
     )
     recent = list(
         s.scalars(
-            select(Report).where(Report.status != ReportStatus.OPEN).options(*opts).order_by(Report.resolved_at.desc()).limit(10)
+            select(Report)
+            .where(Report.status != ReportStatus.OPEN)
+            .options(*opts)
+            .order_by(Report.resolved_at.desc())
+            .limit(10)
         )
     )
     return render_template(
-        "admin/reports.html", open_reports=open_reports, appeals=appeals, recent=recent,
+        "admin/reports.html",
+        open_reports=open_reports,
+        appeals=appeals,
+        recent=recent,
         reasons=moderation.REASONS,
     )
 
@@ -165,7 +209,9 @@ def report_resolve(report_id: int) -> ResponseReturnValue:
     report = get_or_404(db(), Report, report_id)
     uphold = request.form.get("decision") == "uphold"
     try:
-        moderation.resolve_report(db(), require_user(), report, uphold, request.form.get("note", ""))
+        moderation.resolve_report(
+            db(), require_user(), report, uphold, request.form.get("note", "")
+        )
         db().commit()
         flash("Content removed and the author can appeal." if uphold else "Report dismissed.", "ok")
     except RuleViolation as exc:
@@ -182,7 +228,12 @@ def appeal_decide(report_id: int) -> ResponseReturnValue:
     try:
         moderation.decide_appeal(db(), require_user(), report, accept, request.form.get("note", ""))
         db().commit()
-        flash("Appeal accepted: content restored." if accept else "Appeal rejected: the takedown stands.", "ok")
+        flash(
+            "Appeal accepted: content restored."
+            if accept
+            else "Appeal rejected: the takedown stands.",
+            "ok",
+        )
     except RuleViolation as exc:
         db().rollback()
         rule_error(exc)
@@ -205,7 +256,9 @@ def abuse() -> ResponseReturnValue:
     )
     users = {
         u.id: u
-        for u in s.scalars(select(User).where(User.id.in_({i for f in flags for i in f.user_id_list})))
+        for u in s.scalars(
+            select(User).where(User.id.in_({i for f in flags for i in f.user_id_list}))
+        )
     }
     return render_template("admin/abuse.html", flags=flags, users=users, FlagStatus=FlagStatus)
 
@@ -224,7 +277,9 @@ def abuse_scan_run() -> ResponseReturnValue:
 def abuse_resolve(flag_id: int) -> ResponseReturnValue:
     flag = get_or_404(db(), AbuseFlag, flag_id)
     try:
-        abuse_scan.resolve_flag(db(), require_user(), flag, request.form.get("decision") == "confirm")
+        abuse_scan.resolve_flag(
+            db(), require_user(), flag, request.form.get("decision") == "confirm"
+        )
         db().commit()
         flash("Flag resolved.", "ok")
     except RuleViolation as exc:
@@ -244,7 +299,9 @@ def users() -> ResponseReturnValue:
     stmt = select(User).order_by(User.created_at.desc()).limit(100)
     if q:
         like = f"%{q}%"
-        stmt = stmt.where(or_(User.name.ilike(like), User.email.ilike(like), User.phone.ilike(like)))
+        stmt = stmt.where(
+            or_(User.name.ilike(like), User.email.ilike(like), User.phone.ilike(like))
+        )
     if role in {r.value for r in Role}:
         stmt = stmt.where(User.role == role)
     return render_template("admin/users.html", items=list(db().scalars(stmt)), q=q, role=role)
@@ -261,8 +318,14 @@ def user_suspend(user_id: int) -> ResponseReturnValue:
     suspend = request.form.get("action") == "suspend"
     target.is_suspended = suspend
     target.suspended_reason = (request.form.get("reason") or "")[:200] if suspend else None
-    audit.log(db(), admin, "user.suspended" if suspend else "user.reinstated", "user", target.id,
-              target.suspended_reason or "")
+    audit.log(
+        db(),
+        admin,
+        "user.suspended" if suspend else "user.reinstated",
+        "user",
+        target.id,
+        target.suspended_reason or "",
+    )
     db().commit()
     flash(f"{target.name} {'suspended' if suspend else 'reinstated'}.", "ok")
     return redirect(url_for("admin.users"))
@@ -278,7 +341,9 @@ def locked_codes() -> ResponseReturnValue:
         db().scalars(
             select(Job)
             .where(Job.code_invalidated.is_(True), Job.code_used_at.is_(None))
-            .options(selectinload(Job.customer), selectinload(Job.fundi).selectinload(FundiProfile.user))
+            .options(
+                selectinload(Job.customer), selectinload(Job.fundi).selectinload(FundiProfile.user)
+            )
         )
     )
     return render_template("admin/locked_codes.html", items=items)
@@ -292,7 +357,9 @@ def reissue(job_id: int) -> ResponseReturnValue:
         flash("That code was already used.", "error")
     else:
         completion.reissue(job)
-        audit.log(db(), require_user(), "code.reissued", "job", job.id, "after repeated wrong attempts")
+        audit.log(
+            db(), require_user(), "code.reissued", "job", job.id, "after repeated wrong attempts"
+        )
         db().commit()
         flash("A new completion code was issued to the customer.", "ok")
     return redirect(url_for("admin.locked_codes"))
@@ -306,7 +373,10 @@ def reissue(job_id: int) -> ResponseReturnValue:
 def audit_log() -> ResponseReturnValue:
     entries = list(
         db().scalars(
-            select(AuditLog).options(selectinload(AuditLog.actor)).order_by(AuditLog.id.desc()).limit(200)
+            select(AuditLog)
+            .options(selectinload(AuditLog.actor))
+            .order_by(AuditLog.id.desc())
+            .limit(200)
         )
     )
     return render_template("admin/audit.html", entries=entries)

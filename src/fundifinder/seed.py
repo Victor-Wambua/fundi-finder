@@ -39,8 +39,8 @@ from .models import (
     Quote,
     QuoteRequest,
     QuoteStatus,
-    RefStatus,
     Reference,
+    RefStatus,
     Report,
     ReportStatus,
     RequestStatus,
@@ -209,7 +209,13 @@ def placeholder_work_image(trade: str, variant: int) -> bytes:
         d.ellipse((x, 70 + (i * 41) % 160, x + 60, 130 + (i * 41) % 160), fill=(255, 255, 255, 40))
     d.rounded_rectangle((170, 170, 470, 310), radius=18, fill=(255, 255, 255))
     d.text((320, 215), "SAMPLE IMAGE", fill=(20, 33, 61), font=_font(30), anchor="mm")
-    d.text((320, 262), f"{TRADES[trade][0]} portfolio #{variant + 1}", fill=(90, 100, 120), font=_font(20), anchor="mm")
+    d.text(
+        (320, 262),
+        f"{TRADES[trade][0]} portfolio #{variant + 1}",
+        fill=(90, 100, 120),
+        font=_font(20),
+        anchor="mm",
+    )
     out = io.BytesIO()
     img.save(out, format="PNG", optimize=True)
     return out.getvalue()
@@ -219,13 +225,25 @@ def placeholder_id_image(name: str) -> bytes:
     img = Image.new("RGB", (640, 400), (236, 232, 220))
     d = ImageDraw.Draw(img)
     d.rectangle((0, 0, 640, 56), fill=(20, 33, 61))
-    d.text((24, 28), "SYNTHETIC PLACEHOLDER: NOT A REAL ID", fill=(252, 163, 17), font=_font(22), anchor="lm")
+    d.text(
+        (24, 28),
+        "SYNTHETIC PLACEHOLDER: NOT A REAL ID",
+        fill=(252, 163, 17),
+        font=_font(22),
+        anchor="lm",
+    )
     d.rectangle((28, 90, 200, 290), outline=(120, 120, 120), width=3)
     d.text((114, 190), "PHOTO", fill=(150, 150, 150), font=_font(24), anchor="mm")
     d.text((230, 120), f"Name: {name}", fill=(40, 40, 40), font=_font(24))
     d.text((230, 170), "ID no: 00000000", fill=(40, 40, 40), font=_font(24))
     d.text((230, 220), "Issued: demo", fill=(40, 40, 40), font=_font(24))
-    d.text((320, 350), "Generated for the Fundi Finder demo", fill=(120, 120, 120), font=_font(18), anchor="mm")
+    d.text(
+        (320, 350),
+        "Generated for the Fundi Finder demo",
+        fill=(120, 120, 120),
+        font=_font(18),
+        anchor="mm",
+    )
     out = io.BytesIO()
     img.save(out, format="PNG", optimize=True)
     return out.getvalue()
@@ -274,15 +292,25 @@ class Seeder:
                 return full
 
     def user(
-        self, name: str, role: str, created: datetime, *, email: str | None = None,
-        phone: str | None = None, ip: str | None = None, verified: bool = True,
+        self,
+        name: str,
+        role: str,
+        created: datetime,
+        *,
+        email: str | None = None,
+        phone: str | None = None,
+        ip: str | None = None,
+        verified: bool = True,
     ) -> User:
         slug = name.lower().replace(" ", ".")
         u = User(
-            role=role, name=name,
+            role=role,
+            name=name,
             email=email or f"{slug}.{self.rng.randrange(100, 999)}@example.test",
-            phone=phone or self.phone(), password_hash=self.password_hash,
-            created_at=created, signup_ip_hash=ip or self.rng.choice(self._ip_pool),
+            phone=phone or self.phone(),
+            password_hash=self.password_hash,
+            created_at=created,
+            signup_ip_hash=ip or self.rng.choice(self._ip_pool),
             phone_verified_at=created + timedelta(minutes=5) if verified else None,
             is_synthetic=True,
         )
@@ -302,7 +330,9 @@ class Seeder:
             self.trades[slug] = trade
             self.job_types[slug] = []
             for jt_name, _lo, _hi in jts:
-                jt = JobType(trade=trade, name=jt_name, slug=f"{slug}-{len(self.job_types[slug]) + 1}")
+                jt = JobType(
+                    trade=trade, name=jt_name, slug=f"{slug}-{len(self.job_types[slug]) + 1}"
+                )
                 self.db.add(jt)
                 self.job_types[slug].append(jt)
         self.db.flush()
@@ -310,8 +340,10 @@ class Seeder:
     # -- people --
 
     def admins_and_demo_accounts(self) -> None:
-        for name, email, n in [("Platform Admin", "admin@fundifinder.test", 990),
-                               ("Second Admin", "admin2@fundifinder.test", 991)]:
+        for name, email, n in [
+            ("Platform Admin", "admin@fundifinder.test", 990),
+            ("Second Admin", "admin2@fundifinder.test", 991),
+        ]:
             self.admins.append(
                 self.user(name, Role.ADMIN, self.ago(600), email=email, phone=self.phone(n))
             )
@@ -343,12 +375,19 @@ class Seeder:
                 n_jobs = 3  # the ring targets have thin honest histories
             name = self.name()
             email = "fundi@fundifinder.test" if i == 1 else None
-            user = self.user(name, Role.FUNDI, created, email=email,
-                             verified=self.rng.random() < (0.97 if established else 0.8))
+            user = self.user(
+                name,
+                Role.FUNDI,
+                created,
+                email=email,
+                verified=self.rng.random() < (0.97 if established else 0.8),
+            )
             self.db.flush()
             trade = self.trades[slug]
             prof = FundiProfile(
-                user_id=user.id, trade_id=trade.id, created_at=created,
+                user_id=user.id,
+                trade_id=trade.id,
+                created_at=created,
                 headline=self.rng.choice(HEADLINES[slug]),
                 bio=self._bio(name, slug),
                 years_experience=self.rng.randint(2, 28) if established else self.rng.randint(1, 5),
@@ -366,24 +405,32 @@ class Seeder:
                 lo2 = max(100, round(lo * skew / 50) * 50)
                 hi2 = max(lo2 + 50, round(hi * skew * self.rng.uniform(0.9, 1.1) / 50) * 50)
                 svc = FundiService(
-                    fundi_id=prof.id, job_type_id=self.job_types[slug][idx].id,
-                    price_min_kes=lo2, price_max_kes=hi2,
+                    fundi_id=prof.id,
+                    job_type_id=self.job_types[slug][idx].id,
+                    price_min_kes=lo2,
+                    price_max_kes=hi2,
                 )
                 self.db.add(svc)
                 services.append(svc)
             self.sims.append(
-                Sim(prof, user, quality,
+                Sim(
+                    prof,
+                    user,
+                    quality,
                     p_on_time=min(0.99, max(0.55, self.rng.gauss(0.87, 0.1))),
                     p_fast=min(0.99, max(0.5, self.rng.gauss(0.85, 0.12))),
                     delay_hours=self.rng.uniform(0.5, 9),
-                    n_jobs=n_jobs, area_ids=[a.id for a in prof.areas],
-                    services=services, created=created)
+                    n_jobs=n_jobs,
+                    area_ids=[a.id for a in prof.areas],
+                    services=services,
+                    created=created,
+                )
             )
         self.db.flush()
         self.summary.fundis = len(self.sims)
 
     def _bio(self, name: str, slug: str) -> str:
-        first = name.split()[0]
+        first = name.split(maxsplit=1)[0]
         trade = TRADES[slug][0].lower()
         return (
             f"{first} has worked as a {trade} across Nairobi for years. "
@@ -395,53 +442,103 @@ class Seeder:
         for sim in self.sims:
             pid = sim.profile.id
             style = self.rng.random()
-            days = [0, 1, 2, 3, 4] if style < 0.55 else ([0, 1, 2, 3, 4, 5] if style < 0.8 else [1, 2, 3, 4, 5])
+            days = (
+                [0, 1, 2, 3, 4]
+                if style < 0.55
+                else ([0, 1, 2, 3, 4, 5] if style < 0.8 else [1, 2, 3, 4, 5])
+            )
             start, end = self.rng.choice([(8, 17), (7, 18), (9, 17), (8, 16)])
             for d in days:
-                self.db.add(AvailabilityRule(fundi_id=pid, weekday=d, start_hour=start,
-                                             end_hour=13 if d == 5 else end))
+                self.db.add(
+                    AvailabilityRule(
+                        fundi_id=pid, weekday=d, start_hour=start, end_hour=13 if d == 5 else end
+                    )
+                )
             today = self.now.date()
             if self.rng.random() < 0.18:  # away for the coming week
                 for k in range(0, 7):
-                    self.db.add(AvailabilityException(
-                        fundi_id=pid, day=today + timedelta(days=k), available=False, note="Away"))
+                    self.db.add(
+                        AvailabilityException(
+                            fundi_id=pid,
+                            day=today + timedelta(days=k),
+                            available=False,
+                            note="Away",
+                        )
+                    )
             elif self.rng.random() < 0.3:
-                self.db.add(AvailabilityException(
-                    fundi_id=pid, day=today + timedelta(days=self.rng.randint(1, 10)),
-                    available=False, note="Day off"))
+                self.db.add(
+                    AvailabilityException(
+                        fundi_id=pid,
+                        day=today + timedelta(days=self.rng.randint(1, 10)),
+                        available=False,
+                        note="Day off",
+                    )
+                )
 
     def verification(self) -> None:
         admin = self.admins[0]
         pending_left = 6
         for sim in self.sims:
             prof, user = sim.profile, sim.user
-            slug = prof.trade.slug if prof.trade else next(
-                s for s, t in self.trades.items() if t.id == prof.trade_id)
+            slug = (
+                prof.trade.slug
+                if prof.trade
+                else next(s for s, t in self.trades.items() if t.id == prof.trade_id)
+            )
             if self.rng.random() < 0.55 and user.phone_verified_at:
-                doc = IdDocument(fundi_id=prof.id, storage_name=self._store("private", placeholder_id_image(user.name)),
-                                 status=IdStatus.APPROVED, created_at=sim.created + timedelta(days=2),
-                                 reviewed_by_id=admin.id, reviewed_at=sim.created + timedelta(days=3))
+                doc = IdDocument(
+                    fundi_id=prof.id,
+                    storage_name=self._store("private", placeholder_id_image(user.name)),
+                    status=IdStatus.APPROVED,
+                    created_at=sim.created + timedelta(days=2),
+                    reviewed_by_id=admin.id,
+                    reviewed_at=sim.created + timedelta(days=3),
+                )
                 self.db.add(doc)
-                self.db.add(AuditLog(actor_id=admin.id, action="id.approved", target_type="fundi",
-                                     target_id=prof.id, detail="Demo seed", created_at=doc.reviewed_at))
+                self.db.add(
+                    AuditLog(
+                        actor_id=admin.id,
+                        action="id.approved",
+                        target_type="fundi",
+                        target_id=prof.id,
+                        detail="Demo seed",
+                        created_at=doc.reviewed_at,
+                    )
+                )
                 self.summary.id_documents += 1
             elif pending_left and user.phone_verified_at and sim.n_jobs >= 3:
                 pending_left -= 1
-                self.db.add(IdDocument(
-                    fundi_id=prof.id, storage_name=self._store("private", placeholder_id_image(user.name)),
-                    created_at=self.ago(self.rng.uniform(0.2, 3))))
+                self.db.add(
+                    IdDocument(
+                        fundi_id=prof.id,
+                        storage_name=self._store("private", placeholder_id_image(user.name)),
+                        created_at=self.ago(self.rng.uniform(0.2, 3)),
+                    )
+                )
                 self.summary.id_documents += 1
             if self.rng.random() < 0.38 and user.phone_verified_at:
                 for k in range(self.rng.randint(2, 3)):
-                    self.db.add(Reference(
-                        fundi_id=prof.id, name=self.name(), phone=self.phone(),
-                        token=f"seed-{prof.id}-{k}-{self.rng.getrandbits(48):012x}",
-                        status=RefStatus.CONFIRMED, created_at=self.ago(60),
-                        confirmed_at=self.ago(58)))
+                    self.db.add(
+                        Reference(
+                            fundi_id=prof.id,
+                            name=self.name(),
+                            phone=self.phone(),
+                            token=f"seed-{prof.id}-{k}-{self.rng.getrandbits(48):012x}",
+                            status=RefStatus.CONFIRMED,
+                            created_at=self.ago(60),
+                            confirmed_at=self.ago(58),
+                        )
+                    )
             elif self.rng.random() < 0.1:
-                self.db.add(Reference(
-                    fundi_id=prof.id, name=self.name(), phone=self.phone(),
-                    token=f"seed-{prof.id}-p-{self.rng.getrandbits(48):012x}", created_at=self.ago(3)))
+                self.db.add(
+                    Reference(
+                        fundi_id=prof.id,
+                        name=self.name(),
+                        phone=self.phone(),
+                        token=f"seed-{prof.id}-p-{self.rng.getrandbits(48):012x}",
+                        created_at=self.ago(3),
+                    )
+                )
             if self.rng.random() < 0.55:
                 n_photos = self.rng.choice([1, 2, 3, 3, 4, 5])
                 for k in range(n_photos):
@@ -449,9 +546,14 @@ class Seeder:
                     key = (slug, variant)
                     if key not in self._photo_cache:
                         self._photo_cache[key] = placeholder_work_image(slug, variant)
-                    self.db.add(PortfolioPhoto(
-                        fundi_id=prof.id, storage_name=self._store("public", self._photo_cache[key]),
-                        caption=f"Sample {TRADES[slug][0].lower()} work {k + 1}", created_at=self.ago(90)))
+                    self.db.add(
+                        PortfolioPhoto(
+                            fundi_id=prof.id,
+                            storage_name=self._store("public", self._photo_cache[key]),
+                            caption=f"Sample {TRADES[slug][0].lower()} work {k + 1}",
+                            created_at=self.ago(90),
+                        )
+                    )
 
     def _store(self, zone: str, data: bytes) -> str:
         return self.storage.save(zone, data, "png")
@@ -473,34 +575,56 @@ class Seeder:
         return self.rng.choice(pool)
 
     def sample_rating(self, quality: float) -> int:
-        weights = [pow(2.718, -((r - quality) ** 2) / (2 * 0.62**2)) for r in range(1, 6)]
+        if self.rng.random() < 0.04:  # everyone has a bad day sometimes
+            return self.rng.choice([1, 2, 2, 3])
+        weights = [pow(2.718, -((r - quality) ** 2) / (2 * 0.8**2)) for r in range(1, 6)]
         return self.rng.choices([1, 2, 3, 4, 5], weights)[0]
 
     def price_for(self, svc: FundiService) -> int:
         frac = min(1.0, max(0.0, self.rng.betavariate(2, 2.4)))
         return round((svc.price_min_kes + frac * (svc.price_max_kes - svc.price_min_kes)) / 50) * 50
 
-    def _request_and_quote(self, sim: Sim, customer: User, svc: FundiService, scheduled: datetime,
-                           price: int, answered: bool = True) -> tuple[QuoteRequest, Quote]:
+    def _request_and_quote(
+        self,
+        sim: Sim,
+        customer: User,
+        svc: FundiService,
+        scheduled: datetime,
+        price: int,
+        answered: bool = True,
+    ) -> tuple[QuoteRequest, Quote]:
         created = scheduled - timedelta(days=self.rng.uniform(1, 6))
         created = max(created, customer.created_at + timedelta(hours=1))
         area_id = self.rng.choice(sim.area_ids)
         req = QuoteRequest(
-            customer_id=customer.id, fundi_id=sim.profile.id, job_type_id=svc.job_type_id,
-            area_id=area_id, description=self._describe(svc), preferred_time=scheduled,
-            created_at=created, status=RequestStatus.ACCEPTED,
+            customer_id=customer.id,
+            fundi_id=sim.profile.id,
+            job_type_id=svc.job_type_id,
+            area_id=area_id,
+            description=self._describe(svc),
+            preferred_time=scheduled,
+            created_at=created,
+            status=RequestStatus.ACCEPTED,
         )
         self.db.add(req)
         self.db.flush()
-        delay = (self.rng.uniform(0.2, 1.0) * sim.delay_hours if self.rng.random() < sim.p_fast
-                 else self.rng.uniform(26, 90))
+        delay = (
+            self.rng.uniform(0.2, 1.0) * sim.delay_hours
+            if self.rng.random() < sim.p_fast
+            else self.rng.uniform(26, 90)
+        )
         req.first_response_at = max(
             created + timedelta(minutes=5),
             min(created + timedelta(hours=delay), scheduled - timedelta(minutes=30)),
         )
-        quote = Quote(request_id=req.id, amount_kes=price, message="Price includes labour. Materials as discussed.",
-                      proposed_start=scheduled, status=QuoteStatus.ACCEPTED,
-                      created_at=req.first_response_at)
+        quote = Quote(
+            request_id=req.id,
+            amount_kes=price,
+            message="Price includes labour. Materials as discussed.",
+            proposed_start=scheduled,
+            status=QuoteStatus.ACCEPTED,
+            created_at=req.first_response_at,
+        )
         self.db.add(quote)
         self.db.flush()
         return req, quote
@@ -509,33 +633,54 @@ class Seeder:
         jt = next(j for js in self.job_types.values() for j in js if j.id == svc.job_type_id)
         return f"{jt.name}. Please come and look first, then give me a price. I am home in the mornings."
 
-    def add_job(self, sim: Sim, customer: User, status: str, scheduled: datetime,
-                svc: FundiService | None = None, price: int | None = None,
-                on_time: bool | None = None) -> Job:
+    def add_job(
+        self,
+        sim: Sim,
+        customer: User,
+        status: str,
+        scheduled: datetime,
+        svc: FundiService | None = None,
+        price: int | None = None,
+        on_time: bool | None = None,
+    ) -> Job:
         svc = svc or self.rng.choice(sim.services)
         price = price or self.price_for(svc)
         req, quote = self._request_and_quote(sim, customer, svc, scheduled, price)
         job = Job(
-            request_id=req.id, quote_id=quote.id, customer_id=customer.id, fundi_id=sim.profile.id,
-            job_type_id=svc.job_type_id, area_id=req.area_id, price_kes=price, scheduled_for=scheduled,
-            status=JobStatus.BOOKED, created_at=quote.created_at + timedelta(hours=self.rng.uniform(0.5, 20)),
+            request_id=req.id,
+            quote_id=quote.id,
+            customer_id=customer.id,
+            fundi_id=sim.profile.id,
+            job_type_id=svc.job_type_id,
+            area_id=req.area_id,
+            price_kes=price,
+            scheduled_for=scheduled,
+            status=JobStatus.BOOKED,
+            created_at=quote.created_at + timedelta(hours=self.rng.uniform(0.5, 20)),
             code_salt=f"{self.rng.getrandbits(128):032x}",
         )
         started = None
         if status in ("completed", "awaiting_confirmation", "in_progress"):
             punctual = self.rng.random() < sim.p_on_time if on_time is None else on_time
-            started = scheduled + (timedelta(minutes=-self.rng.randint(0, 10)) if punctual
-                                   else timedelta(minutes=self.rng.randint(25, 140)))
+            started = scheduled + (
+                timedelta(minutes=-self.rng.randint(0, 10))
+                if punctual
+                else timedelta(minutes=self.rng.randint(25, 140))
+            )
             job.started_at = started
         if status in ("completed", "awaiting_confirmation"):
-            job.marked_complete_at = started + timedelta(hours=self.rng.uniform(1, 5))  # type: ignore[operator]
+            assert started is not None
+            job.marked_complete_at = started + timedelta(hours=self.rng.uniform(1, 5))
         if status == "completed":
-            job.completed_at = job.marked_complete_at + timedelta(hours=self.rng.uniform(0.1, 3))  # type: ignore[operator]
+            assert job.marked_complete_at is not None
+            job.completed_at = job.marked_complete_at + timedelta(hours=self.rng.uniform(0.1, 3))
             job.code_used_at = job.completed_at
             job.code_confirmed_by = "fundi" if self.rng.random() < 0.2 else "customer"
         if status == "cancelled":
             job.cancelled_by = "customer" if self.rng.random() < 0.72 else "fundi"
-            job.cancel_reason = "Plans changed" if job.cancelled_by == "customer" else "Double booked"
+            job.cancel_reason = (
+                "Plans changed" if job.cancelled_by == "customer" else "Double booked"
+            )
         job.status = status
         self.db.add(job)
         self.summary.jobs += 1
@@ -543,12 +688,16 @@ class Seeder:
             self.summary.completed_jobs += 1
         return job
 
-    def add_review(self, job: Job, rating: int, *, ring: bool = False,
-                   delay_days: float | None = None) -> Review:
+    def add_review(
+        self, job: Job, rating: int, *, ring: bool = False, delay_days: float | None = None
+    ) -> Review:
         assert job.completed_at is not None
         self.db.flush()
-        created = min(job.completed_at + timedelta(days=delay_days if delay_days is not None
-                                                   else self.rng.uniform(0.1, 5)), self.now)
+        created = min(
+            job.completed_at
+            + timedelta(days=delay_days if delay_days is not None else self.rng.uniform(0.1, 5)),
+            self.now,
+        )
         if ring:
             body = self.rng.choice(RING_TEXT)
         elif rating >= 4:
@@ -557,8 +706,14 @@ class Seeder:
             body = self.rng.choice(MID)
         else:
             body = self.rng.choice(NEG)
-        review = Review(job_id=job.id, customer_id=job.customer_id, fundi_id=job.fundi_id,
-                        rating=rating, body=body, created_at=created)
+        review = Review(
+            job_id=job.id,
+            customer_id=job.customer_id,
+            fundi_id=job.fundi_id,
+            rating=rating,
+            body=body,
+            created_at=created,
+        )
         if not ring and self.rng.random() < 0.35:
             review.reply_body = self.rng.choice(REPLIES_POS if rating >= 4 else REPLIES_NEG)
             review.reply_at = created + timedelta(days=self.rng.uniform(0.2, 3))
@@ -574,7 +729,11 @@ class Seeder:
             for k in range(sim.n_jobs):
                 days_back = 3 + (self.rng.random() ** 1.4) * span
                 scheduled = (self.now - timedelta(days=days_back)).replace(
-                    hour=self.rng.randint(8, 16), minute=self.rng.choice([0, 30]), second=0, microsecond=0)
+                    hour=self.rng.randint(8, 16),
+                    minute=self.rng.choice([0, 30]),
+                    second=0,
+                    microsecond=0,
+                )
                 scheduled = max(scheduled, sim.created + timedelta(days=3))
                 customer = self.pick_customer(scheduled)
                 job = self.add_job(sim, customer, "completed", scheduled)
@@ -593,12 +752,15 @@ class Seeder:
         for _ in range(total):
             sim = self.rng.choice(established)
             scheduled = (self.now - timedelta(days=self.rng.uniform(2, 380))).replace(
-                hour=self.rng.randint(8, 16), minute=0, second=0, microsecond=0)
+                hour=self.rng.randint(8, 16), minute=0, second=0, microsecond=0
+            )
             scheduled = max(scheduled, sim.created + timedelta(days=3))
             roll = self.rng.random()
             status = "cancelled" if roll < 0.8 else "no_show"
             customer = self.pick_customer(scheduled)
-            job = self.add_job(sim, customer, "cancelled" if status == "cancelled" else "booked", scheduled)
+            job = self.add_job(
+                sim, customer, "cancelled" if status == "cancelled" else "booked", scheduled
+            )
             if status == "no_show":
                 job.status = JobStatus.NO_SHOW
 
@@ -608,30 +770,56 @@ class Seeder:
         targets = {"A": self.sims[20], "B": self.sims[27], "C": self.sims[33]}
         # Ring A: six accounts created the same day, consecutive SIM block, all 5 stars
         day = self.ago(40).replace(hour=9, minute=0, second=0, microsecond=0)
-        ring_a = [self.user(self.name(), Role.CUSTOMER, day + timedelta(minutes=7 * k),
-                            phone=self.phone(900 + k)) for k in range(6)]
+        ring_a = [
+            self.user(
+                self.name(),
+                Role.CUSTOMER,
+                day + timedelta(minutes=7 * k),
+                phone=self.phone(900 + k),
+            )
+            for k in range(6)
+        ]
         # Ring B: five accounts, same day, same sign-up network, scattered numbers
         day_b = self.ago(75).replace(hour=14, minute=0, second=0, microsecond=0)
         net_b = f"{self.rng.getrandbits(64):016x}"
-        ring_b = [self.user(self.name(), Role.CUSTOMER, day_b + timedelta(minutes=11 * k),
-                            ip=net_b) for k in range(5)]
+        ring_b = [
+            self.user(self.name(), Role.CUSTOMER, day_b + timedelta(minutes=11 * k), ip=net_b)
+            for k in range(5)
+        ]
         # Ring C: the fundi's own alternate accounts, same network and SIM block
         z = targets["C"]
         z.user.signup_ip_hash = f"{self.rng.getrandbits(64):016x}"
         z.user.phone = self.phone(880)
-        alts = [self.user(self.name(), Role.CUSTOMER, z.user.created_at + timedelta(hours=1 + k),
-                          ip=z.user.signup_ip_hash, phone=self.phone(881 + k)) for k in range(3)]
+        alts = [
+            self.user(
+                self.name(),
+                Role.CUSTOMER,
+                z.user.created_at + timedelta(hours=1 + k),
+                ip=z.user.signup_ip_hash,
+                phone=self.phone(881 + k),
+            )
+            for k in range(3)
+        ]
         self.db.flush()
-        for label, accounts, sim, start in (("A", ring_a, targets["A"], self.ago(38)),
-                                            ("B", ring_b, targets["B"], self.ago(72)),
-                                            ("C", alts, targets["C"], self.ago(95))):
+        for label, accounts, sim, start in (
+            ("A", ring_a, targets["A"], self.ago(38)),
+            ("B", ring_b, targets["B"], self.ago(72)),
+            ("C", alts, targets["C"], self.ago(95)),
+        ):
             if label == "C":
                 start = max(start, z.user.created_at + timedelta(days=4))
             for k, acct in enumerate(accounts):
                 scheduled = start + timedelta(hours=9 * k + 2)
                 svc = sim.services[0]
-                job = self.add_job(sim, acct, "completed", scheduled, svc=svc,
-                                   price=svc.price_min_kes, on_time=True)
+                job = self.add_job(
+                    sim,
+                    acct,
+                    "completed",
+                    scheduled,
+                    svc=svc,
+                    price=svc.price_min_kes,
+                    on_time=True,
+                )
                 self.db.flush()
                 self.add_review(job, 5, ring=True, delay_days=0.1 + 0.2 * k)
             self.summary.rings[label] = len(accounts)
@@ -641,48 +829,85 @@ class Seeder:
 
     def demo_cast(self) -> None:
         demo_fundi = self.sims[1]
-        cust = self.user("Amina Demo-Customer", Role.CUSTOMER, self.ago(200),
-                         email="customer@fundifinder.test", phone=self.phone(992))
+        cust = self.user(
+            "Amina Demo-Customer",
+            Role.CUSTOMER,
+            self.ago(200),
+            email="customer@fundifinder.test",
+            phone=self.phone(992),
+        )
         self.db.flush()
         others = [s for s in self.sims[2:30] if s.profile.trade_id != demo_fundi.profile.trade_id]
         # live jobs with the demo fundi
         self.add_job(demo_fundi, cust, "booked", self.now + timedelta(days=3, hours=2))
-        awaiting = self.add_job(demo_fundi, cust, "awaiting_confirmation", self.now - timedelta(hours=5))
+        awaiting = self.add_job(
+            demo_fundi, cust, "awaiting_confirmation", self.now - timedelta(hours=5)
+        )
         # a completed job waiting for its review, and one old reviewed job
         waiting = self.add_job(others[0], cust, "completed", self.ago(9))
         old = self.add_job(others[1], cust, "completed", self.ago(70))
         self.db.flush()
         rev = self.add_review(old, 5, delay_days=1)
-        rev.reply_body, rev.reply_at = "Thank you, glad it worked out.", rev.created_at + timedelta(days=1)
+        rev.reply_body, rev.reply_at = (
+            "Thank you, glad it worked out.",
+            rev.created_at + timedelta(days=1),
+        )
         # a request that has a quote waiting to be accepted, and one still open
         for sim, quoted in ((others[2], True), (others[3], False)):
             svc = self.rng.choice(sim.services)
-            req = QuoteRequest(customer_id=cust.id, fundi_id=sim.profile.id, job_type_id=svc.job_type_id,
-                               area_id=sim.area_ids[0], description=self._describe(svc),
-                               preferred_time=self.now + timedelta(days=4), created_at=self.ago(0.5),
-                               status=RequestStatus.QUOTED if quoted else RequestStatus.OPEN)
+            req = QuoteRequest(
+                customer_id=cust.id,
+                fundi_id=sim.profile.id,
+                job_type_id=svc.job_type_id,
+                area_id=sim.area_ids[0],
+                description=self._describe(svc),
+                preferred_time=self.now + timedelta(days=4),
+                created_at=self.ago(0.5),
+                status=RequestStatus.QUOTED if quoted else RequestStatus.OPEN,
+            )
             self.db.add(req)
             self.db.flush()
             if quoted:
                 req.first_response_at = self.ago(0.2)
-                self.db.add(Quote(request_id=req.id, amount_kes=self.price_for(svc),
-                                  message="I can start on the day you asked. Price includes labour.",
-                                  proposed_start=self.now + timedelta(days=4, hours=1), created_at=self.ago(0.2)))
+                self.db.add(
+                    Quote(
+                        request_id=req.id,
+                        amount_kes=self.price_for(svc),
+                        message="I can start on the day you asked. Price includes labour.",
+                        proposed_start=self.now + timedelta(days=4, hours=1),
+                        created_at=self.ago(0.2),
+                    )
+                )
         # open requests in the demo fundi's inbox
         for k in range(3):
             svc = self.rng.choice(demo_fundi.services)
             c = self.rng.choice(self.customers[:80])
-            self.db.add(QuoteRequest(
-                customer_id=c.id, fundi_id=demo_fundi.profile.id, job_type_id=svc.job_type_id,
-                area_id=demo_fundi.area_ids[0], description=self._describe(svc),
-                preferred_time=self.now + timedelta(days=2 + k), created_at=self.ago(0.1 * (k + 1))))
+            self.db.add(
+                QuoteRequest(
+                    customer_id=c.id,
+                    fundi_id=demo_fundi.profile.id,
+                    job_type_id=svc.job_type_id,
+                    area_id=demo_fundi.area_ids[0],
+                    description=self._describe(svc),
+                    preferred_time=self.now + timedelta(days=2 + k),
+                    created_at=self.ago(0.1 * (k + 1)),
+                )
+            )
         # a handful of in-flight jobs elsewhere so the admin and fundi views have live data
-        for sim in self.rng.sample([s for s in self.sims if s.n_jobs >= 6 and s is not demo_fundi], 6):
+        for sim in self.rng.sample(
+            [s for s in self.sims if s.n_jobs >= 6 and s is not demo_fundi], 6
+        ):
             c = self.pick_customer(self.now)
-            self.add_job(sim, c, "booked", self.now + timedelta(days=self.rng.randint(1, 6), hours=3))
-        for sim in self.rng.sample([s for s in self.sims if s.n_jobs >= 6 and s is not demo_fundi], 3):
+            self.add_job(
+                sim, c, "booked", self.now + timedelta(days=self.rng.randint(1, 6), hours=3)
+            )
+        for sim in self.rng.sample(
+            [s for s in self.sims if s.n_jobs >= 6 and s is not demo_fundi], 3
+        ):
             c = self.pick_customer(self.now)
-            self.add_job(sim, c, "awaiting_confirmation", self.now - timedelta(hours=self.rng.randint(3, 20)))
+            self.add_job(
+                sim, c, "awaiting_confirmation", self.now - timedelta(hours=self.rng.randint(3, 20))
+            )
         self.db.flush()
         self._waiting_review_job = waiting
         self._awaiting_job = awaiting
@@ -695,35 +920,81 @@ class Seeder:
         negative = [r for r in self.honest_reviews if r.rating <= 2]
         pool = self.rng.sample(honest, 3)
         reporters = self.rng.sample(self.customers, 3)
-        for review, reporter, reason in zip(pool, reporters, ["abusive", "personal", "other"], strict=True):
-            self.db.add(Report(reporter_id=reporter.id, review_id=review.id, reason=reason,
-                               detail="Demo report for the moderation queue.", created_at=self.ago(self.rng.uniform(0.2, 4))))
+        for review, reporter, reason in zip(
+            pool, reporters, ["abusive", "personal", "other"], strict=True
+        ):
+            self.db.add(
+                Report(
+                    reporter_id=reporter.id,
+                    review_id=review.id,
+                    reason=reason,
+                    detail="Demo report for the moderation queue.",
+                    created_at=self.ago(self.rng.uniform(0.2, 4)),
+                )
+            )
         if negative:
             neg = negative[0]
             fundi_user = self.db.get(FundiProfile, neg.fundi_id).user  # type: ignore[union-attr]
-            self.db.add(Report(reporter_id=fundi_user.id, review_id=neg.id, reason="not_customer",
-                               detail="I have no record of this customer. Please check.", created_at=self.ago(1)))
+            self.db.add(
+                Report(
+                    reporter_id=fundi_user.id,
+                    review_id=neg.id,
+                    reason="not_customer",
+                    detail="I have no record of this customer. Please check.",
+                    created_at=self.ago(1),
+                )
+            )
         # an upheld takedown with an appeal waiting for the *other* admin
         if len(honest) > 8 and negative:
             target = negative[-1]
-            report = Report(reporter_id=self.db.get(FundiProfile, target.fundi_id).user_id,  # type: ignore[union-attr]
-                            review_id=target.id, reason="abusive", detail="Contains insults.",
-                            status=ReportStatus.UPHELD, created_at=self.ago(6), resolved_by_id=admin1.id,
-                            resolved_at=self.ago(5), resolution_note="Insulting language, removed.",
-                            appeal_status=AppealStatus.PENDING,
-                            appeal_text="I only described what happened. The word was about the work, not the person.",
-                            appeal_at=self.ago(3))
+            report = Report(
+                reporter_id=self.db.get(FundiProfile, target.fundi_id).user_id,  # type: ignore[union-attr]
+                review_id=target.id,
+                reason="abusive",
+                detail="Contains insults.",
+                status=ReportStatus.UPHELD,
+                created_at=self.ago(6),
+                resolved_by_id=admin1.id,
+                resolved_at=self.ago(5),
+                resolution_note="Insulting language, removed.",
+                appeal_status=AppealStatus.PENDING,
+                appeal_text="I only described what happened. The word was about the work, not the person.",
+                appeal_at=self.ago(3),
+            )
             target.status = "removed"
             self.db.add(report)
-            self.db.add(AuditLog(actor_id=admin1.id, action="report.upheld", target_type="report",
-                                 detail="Demo seed", created_at=report.resolved_at))
+            self.db.add(
+                AuditLog(
+                    actor_id=admin1.id,
+                    action="report.upheld",
+                    target_type="report",
+                    detail="Demo seed",
+                    created_at=report.resolved_at,
+                )
+            )
         dismissed = honest[-1]
-        self.db.add(Report(reporter_id=self.customers[5].id, review_id=dismissed.id, reason="fake",
-                           detail="Seems too positive.", status=ReportStatus.DISMISSED, created_at=self.ago(9),
-                           resolved_by_id=admin2.id, resolved_at=self.ago(8),
-                           resolution_note="Reviewer has a confirmed job with this fundi."))
-        self.db.add(AuditLog(actor_id=admin2.id, action="report.dismissed", target_type="report",
-                             detail="Demo seed", created_at=self.ago(8)))
+        self.db.add(
+            Report(
+                reporter_id=self.customers[5].id,
+                review_id=dismissed.id,
+                reason="fake",
+                detail="Seems too positive.",
+                status=ReportStatus.DISMISSED,
+                created_at=self.ago(9),
+                resolved_by_id=admin2.id,
+                resolved_at=self.ago(8),
+                resolution_note="Reviewer has a confirmed job with this fundi.",
+            )
+        )
+        self.db.add(
+            AuditLog(
+                actor_id=admin2.id,
+                action="report.dismissed",
+                target_type="report",
+                detail="Demo seed",
+                created_at=self.ago(8),
+            )
+        )
         self.summary.reports = 6
 
 

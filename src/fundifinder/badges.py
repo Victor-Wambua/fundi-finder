@@ -40,10 +40,14 @@ def distinct_reference_count(facts: VerificationFacts) -> int:
 def derive_badges(facts: VerificationFacts) -> list[Badge]:
     badges: list[Badge] = []
     if facts.phone_verified:
-        badges.append(Badge(BadgeKey.PHONE, "Phone verified", "Entered a one-time code sent by SMS"))
+        badges.append(
+            Badge(BadgeKey.PHONE, "Phone verified", "Entered a one-time code sent by SMS")
+        )
     if facts.id_document_approved:
         badges.append(
-            Badge(BadgeKey.ID, "ID checked", "An admin reviewed an identity document and approved it")
+            Badge(
+                BadgeKey.ID, "ID checked", "An admin reviewed an identity document and approved it"
+            )
         )
     if distinct_reference_count(facts) >= MIN_REFERENCES:
         badges.append(

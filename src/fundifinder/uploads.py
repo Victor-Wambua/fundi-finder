@@ -11,6 +11,7 @@ from __future__ import annotations
 import io
 import re
 import secrets
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,11 +21,20 @@ MAX_PIXELS = 25_000_000
 MAX_SIDE = 1600
 NAME_RE = re.compile(r"^[0-9a-f]{32}\.(png|jpg|webp)$")
 
-_MAGIC = {
-    "png": lambda b: b.startswith(b"\x89PNG\r\n\x1a\n"),
-    "jpg": lambda b: b.startswith(b"\xff\xd8\xff"),
-    "webp": lambda b: b[:4] == b"RIFF" and b[8:12] == b"WEBP",
-}
+
+def _is_png(b: bytes) -> bool:
+    return b.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def _is_jpg(b: bytes) -> bool:
+    return b.startswith(b"\xff\xd8\xff")
+
+
+def _is_webp(b: bytes) -> bool:
+    return b[:4] == b"RIFF" and b[8:12] == b"WEBP"
+
+
+_MAGIC: dict[str, Callable[[bytes], bool]] = {"png": _is_png, "jpg": _is_jpg, "webp": _is_webp}
 _EXT_ALIASES = {"jpeg": "jpg", "jpg": "jpg", "png": "png", "webp": "webp"}
 _MIME = {"png": "image/png", "jpg": "image/jpeg", "webp": "image/webp"}
 _PIL_FORMAT = {"png": "PNG", "jpg": "JPEG", "webp": "WEBP"}
@@ -78,8 +88,8 @@ def validate_image(data: bytes, filename: str | None, max_bytes: int) -> Validat
 
 def sanitise_image(data: bytes, kind: str) -> bytes:
     """Re-encode: applies EXIF rotation, drops all metadata, caps the longest side."""
-    with Image.open(io.BytesIO(data)) as img:
-        img = ImageOps.exif_transpose(img)
+    with Image.open(io.BytesIO(data)) as opened:
+        img: Image.Image = ImageOps.exif_transpose(opened)
         img.thumbnail((MAX_SIDE, MAX_SIDE))
         if kind == "jpg" and img.mode != "RGB":
             img = img.convert("RGB")

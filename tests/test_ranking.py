@@ -39,8 +39,10 @@ stats_st = st.builds(
     punctual_jobs=st.integers(0, 100),
     badge_count=st.integers(0, 4),
 ).filter(
-    lambda s: s.requests_answered_in_time <= s.requests_answerable
-    and s.punctual_jobs <= s.punctual_eligible
+    lambda s: (
+        s.requests_answered_in_time <= s.requests_answerable
+        and s.punctual_jobs <= s.punctual_eligible
+    )
 )
 
 
@@ -72,8 +74,9 @@ def test_sixty_reviews_of_4_8_dominate_the_prior():
 def test_worked_example_scores():
     one = score_fundi(FundiStats(reviews=fresh(5, 1), completed_jobs=1), 4.2)
     many = score_fundi(FundiStats(reviews=fresh(5, 48) + fresh(4, 12), completed_jobs=60), 4.2)
-    assert one.score == pytest.approx(55 * (3.2889 / 4) + 15 * (1 - math.exp(-1 / 30))
-                                      + 12 * 0.75 + 10 * 0.8 + 0, abs=0.05)
+    assert one.score == pytest.approx(
+        55 * (3.2889 / 4) + 15 * (1 - math.exp(-1 / 30)) + 12 * 0.75 + 10 * 0.8 + 0, abs=0.05
+    )
     assert many.score > one.score + 10
 
 
@@ -95,8 +98,11 @@ def test_empty_stats_score_is_deterministic_and_modest():
 @given(st.floats(3.0, 4.7), st.integers(0, 2), st.integers(0, 4))
 def test_one_5_star_never_outranks_60_at_4_8(prior, bad_resp, badges):
     shared = dict(
-        requests_answerable=bad_resp * 10, requests_answered_in_time=bad_resp * 5,
-        punctual_eligible=10, punctual_jobs=8, badge_count=badges,
+        requests_answerable=bad_resp * 10,
+        requests_answered_in_time=bad_resp * 5,
+        punctual_eligible=10,
+        punctual_jobs=8,
+        badge_count=badges,
     )
     newcomer = FundiStats(reviews=fresh(5, 1), completed_jobs=1, **shared)
     veteran = FundiStats(reviews=fresh(5, 48) + fresh(4, 12), completed_jobs=60, **shared)
@@ -225,7 +231,9 @@ def test_new_fundi_threshold():
 
 
 def _items():
-    return [(f"est{i}", 100 - i, False) for i in range(10)] + [(f"new{i}", 50 - i, True) for i in range(3)]
+    return [(f"est{i}", 100 - i, False) for i in range(10)] + [
+        (f"new{i}", 50 - i, True) for i in range(3)
+    ]
 
 
 def test_every_fourth_slot_goes_to_a_newcomer():
@@ -240,8 +248,12 @@ def test_established_order_is_preserved():
 
 
 def test_newcomers_rotate_with_the_day_seed():
-    first = [x[0] for x in order_results(_items(), lambda x: x[1], lambda x: x[2], day_seed=0) if x[2]]
-    second = [x[0] for x in order_results(_items(), lambda x: x[1], lambda x: x[2], day_seed=1) if x[2]]
+    first = [
+        x[0] for x in order_results(_items(), lambda x: x[1], lambda x: x[2], day_seed=0) if x[2]
+    ]
+    second = [
+        x[0] for x in order_results(_items(), lambda x: x[1], lambda x: x[2], day_seed=1) if x[2]
+    ]
     assert first != second and sorted(first) == sorted(second)
 
 
