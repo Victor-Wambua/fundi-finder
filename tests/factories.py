@@ -84,7 +84,7 @@ def make_fundi(db: Session, cat: Catalog, n: int, *, verified: bool = True,
     return profile
 
 
-def make_admin(db: Session, n: int = 900) -> User:
+def make_admin(db: Session, n: int = 950) -> User:
     return make_user(db, n, Role.ADMIN)
 
 

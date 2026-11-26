@@ -81,6 +81,14 @@ def create_request(
     return req
 
 
+def _sent_quotes(db: Session, req: QuoteRequest) -> list[Quote]:
+    return list(
+        db.scalars(
+            select(Quote).where(Quote.request_id == req.id, Quote.status == QuoteStatus.SENT)
+        )
+    )
+
+
 def send_quote(
     db: Session,
     fundi_user: User,
@@ -100,9 +108,8 @@ def send_quote(
         raise RuleViolation(f"A quote must be between KES {MIN_QUOTE_KES:,} and KES {MAX_QUOTE_KES:,}.")
     if proposed_start < now:
         raise RuleViolation("Propose a start time in the future.")
-    for old in req.quotes:
-        if old.status == QuoteStatus.SENT:
-            old.status = QuoteStatus.SUPERSEDED
+    for old in _sent_quotes(db, req):
+        old.status = QuoteStatus.SUPERSEDED
     quote = Quote(
         request_id=req.id,
         amount_kes=amount_kes,
@@ -134,9 +141,8 @@ def cancel_request(db: Session, customer: User, req: QuoteRequest) -> None:
     if req.status not in (RequestStatus.OPEN, RequestStatus.QUOTED):
         raise RuleViolation("This request can no longer be cancelled.")
     req.status = RequestStatus.CANCELLED
-    for q in req.quotes:
-        if q.status == QuoteStatus.SENT:
-            q.status = QuoteStatus.REJECTED
+    for q in _sent_quotes(db, req):
+        q.status = QuoteStatus.REJECTED
 
 
 def accept_quote(db: Session, customer: User, quote: Quote) -> Job:
