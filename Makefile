@@ -4,7 +4,7 @@ install:
 	uv sync
 
 run:
-	uv run flask --app fundifinder run --port 4290 --debug
+	uv run flask --app fundifinder run --debug
 
 seed:
 	uv run flask --app fundifinder seed

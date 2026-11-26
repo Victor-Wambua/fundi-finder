@@ -201,7 +201,7 @@ p {
 /* ---- header ---- */
 
 .site-header {
-  background: var(--ink);
+  background: #14213d;
   color: #f4eee2;
 }
 
@@ -518,7 +518,7 @@ button.linklike {
 }
 
 .art-ticket {
-  fill: var(--ink);
+  fill: #14213d;
 }
 
 .art-ticket-text {
@@ -1000,7 +1000,7 @@ th {
 
 .ticket {
   position: relative;
-  background: var(--ink);
+  background: #14213d;
   color: #f4eee2;
   border-radius: var(--radius);
   padding: var(--s5);
@@ -1203,7 +1203,7 @@ details > summary {
 
 .site-footer {
   margin-top: var(--s7);
-  background: var(--ink);
+  background: #14213d;
   color: #cfc8b8;
   font-size: 0.9rem;
 }
@@ -1312,4 +1312,13 @@ tbody th {
   .filters .btn {
     grid-column: auto;
   }
+}
+
+.rating .num + span {
+  margin-left: 6px;
+}
+
+.site-header,
+.site-footer {
+  border-block: 1px solid color-mix(in srgb, #fff 10%, transparent);
 }
