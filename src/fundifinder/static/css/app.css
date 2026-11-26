@@ -1082,7 +1082,8 @@ th {
 
 .filters {
   display: grid;
-  gap: var(--s3);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2) var(--s3);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1291,4 +1292,22 @@ a.stat:hover {
 
 .nav a.btn:hover {
   color: var(--accent-ink);
+}
+
+tbody th {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: inherit;
+  color: inherit;
+  font-weight: 600;
+}
+
+.filters .btn {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 900px) {
+  .filters .btn {
+    grid-column: auto;
+  }
 }
