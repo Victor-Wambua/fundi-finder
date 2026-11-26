@@ -111,9 +111,17 @@ def test_chain_of_links_joins_into_one_ring():
 
 
 def test_score_rises_with_uniform_high_ratings_and_single_purpose_accounts():
-    low = detect_review_rings([rec(i, rating=2, reviews=5) for i in range(1, 4)])[0].score
+    low = detect_review_rings([rec(i, rating=2, reviews=1) for i in range(1, 4)])[0].score
     high = detect_review_rings([rec(i, rating=5, reviews=1) for i in range(1, 4)])[0].score
     assert high > low
+
+
+def test_linked_but_established_reviewers_are_not_a_ring():
+    # neighbours who share a network and review plenty of other fundis too
+    established = [rec(i, reviews=6) for i in range(1, 5)]
+    assert detect_review_rings(established) == []
+    mixed = [rec(1, reviews=1), rec(2, reviews=6), rec(3, reviews=6)]
+    assert detect_review_rings(mixed) == []
 
 
 def test_signature_is_stable_for_the_same_cluster():

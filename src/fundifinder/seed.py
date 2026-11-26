@@ -366,9 +366,9 @@ class Seeder:
                 created = self.ago(self.rng.uniform(4, 40))
             quality = min(4.9, max(3.2, self.rng.gauss(4.35, 0.35)))
             if i == 0:
-                quality, n_jobs = 4.8, 45
+                quality, n_jobs = 4.9, 45
             elif i == 1:
-                quality, n_jobs = 4.6, 30
+                quality, n_jobs = 4.7, 30
             elif i == 3:
                 quality, n_jobs = 3.4, 18  # prolific but mediocre: volume is not quality
             if i in (20, 27, 33):
@@ -577,7 +577,7 @@ class Seeder:
     def sample_rating(self, quality: float) -> int:
         if self.rng.random() < 0.04:  # everyone has a bad day sometimes
             return self.rng.choice([1, 2, 2, 3])
-        weights = [pow(2.718, -((r - quality) ** 2) / (2 * 0.8**2)) for r in range(1, 6)]
+        weights = [pow(2.718, -((r - quality - 0.25) ** 2) / (2 * 0.8**2)) for r in range(1, 6)]
         return self.rng.choices([1, 2, 3, 4, 5], weights)[0]
 
     def price_for(self, svc: FundiService) -> int:

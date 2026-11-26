@@ -89,6 +89,9 @@ def detect_review_rings(records: Sequence[ReviewerRecord]) -> list[Finding]:
         for comp in _components(recs):
             if len(comp) < MIN_RING_SIZE:
                 continue
+            single = sum(1 for r in comp if r.reviewer_review_count == 1)
+            if single * 2 < len(comp):
+                continue  # mostly established accounts that review others too: not throwaways
             signals: set[str] = set()
             for i, a in enumerate(comp):
                 for b in comp[i + 1 :]:
@@ -96,7 +99,6 @@ def detect_review_rings(records: Sequence[ReviewerRecord]) -> list[Finding]:
             score = 40 + 10 * min(len(comp) - MIN_RING_SIZE, 4)
             if all(r.rating >= 4 for r in comp):
                 score += 15
-            single = sum(1 for r in comp if r.reviewer_review_count == 1)
             score += round(15 * single / len(comp))
             span = max(r.review_created for r in comp) - min(r.review_created for r in comp)
             if span <= timedelta(days=7):

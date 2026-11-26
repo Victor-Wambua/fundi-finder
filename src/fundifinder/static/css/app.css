@@ -819,10 +819,12 @@ legend {
 .av-7 { background: #a9dbe0; }
 
 .rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: block;
   font-weight: 700;
+}
+
+.rating .icon {
+  margin-right: 4px;
 }
 
 .rating svg {
