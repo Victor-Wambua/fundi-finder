@@ -72,6 +72,8 @@ uv run flask --app fundifinder seed      # 60 synthetic fundis, ~420 jobs, ~340 
 uv run flask --app fundifinder run       # http://127.0.0.1:5000
 ```
 
+If port 5000 is taken (macOS AirPlay Receiver uses it), add `--port 5001`.
+
 Demo logins, all synthetic, password `demo-password-123`:
 
 | Role | Email | Try this |
