@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Abuse flags · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Abuse flags</h1>{% include 'admin/_nav.html' %}
+  <p class="lede">Heuristics flag; people decide. Reviews under an open flag count a quarter in ranking until resolved. Confirming removes the flagged reviews and suspends the linked customer accounts.</p>
+  <form method="post" action="{{ url_for('admin.abuse_scan_run') }}">{{ m.csrf() }}<button class="btn" type="submit">{{ m.icon('search', 18) }} Run scan now</button></form>
+</div>
+<div class="container">
+  {% for f in flags %}
+  <article class="card mt-3">
+    <div class="row row-between">
+      <strong>{{ {'review_ring': 'Review ring', 'self_review': 'Self-dealing', 'duplicate_account': 'Duplicate accounts'}.get(f.kind, f.kind) }}{% if f.fundi %} · {{ f.fundi.user.name }}{% endif %}</strong>
+      <span class="row"><span class="chip {{ 'chip-bad' if f.score >= 70 else 'chip-warn' }}">Score {{ f.score }}</span>{{ m.status_chip(f.status) }}</span>
+    </div>
+    <p class="mb-0 mt-2">{{ f.summary }}</p>
+    <details class="mt-2 small"><summary>{{ f.user_id_list|length }} linked accounts</summary>
+      <ul>{% for uid in f.user_id_list %}{% set u = users.get(uid) %}{% if u %}<li>#{{ u.id }} {{ u.name }} · {{ u.phone }} · created {{ fmt_date(u.created_at) }}{% if u.is_suspended %} · <strong>suspended</strong>{% endif %}</li>{% endif %}{% endfor %}</ul>
+    </details>
+    {% if f.status == FlagStatus.OPEN %}
+    <form method="post" action="{{ url_for('admin.abuse_resolve', flag_id=f.id) }}" class="row mt-3">
+      {{ m.csrf() }}
+      <button class="btn btn-danger btn-sm" name="decision" value="confirm" type="submit">Confirm abuse: remove reviews, suspend accounts</button>
+      <button class="btn btn-secondary btn-sm" name="decision" value="dismiss" type="submit">Dismiss as innocent</button>
+    </form>
+    {% endif %}
+  </article>
+  {% else %}<div class="mt-3">{{ m.empty('No flags', 'Run a scan to check recent reviews.') }}</div>{% endfor %}
+</div>
+{% endblock %}

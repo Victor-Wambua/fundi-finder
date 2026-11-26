@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Verification · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Verification</h1>{% include 'fundi/_nav.html' %}
+  <p class="lede">Badges come from records. You cannot tick one yourself.</p></div>
+<div class="container stack-lg">
+  <div class="grid grid-2">
+    <section class="card">
+      <h2>{{ m.icon('phone', 22) }} Phone verified</h2>
+      {% if user.phone_verified_at %}<p><span class="chip chip-ok">{{ m.icon('check', 14) }}Done</span> {{ user.phone }}</p>{% else %}<p>Verify your number with a one-time SMS code.</p><a class="btn btn-sm" href="{{ url_for('auth.verify_phone', next=url_for('fundi.verification_page')) }}">Verify phone</a>{% endif %}
+    </section>
+    <section class="card">
+      <h2>{{ m.icon('id', 22) }} ID checked</h2>
+      {% set approved = docs|selectattr('status', 'equalto', 'approved')|list %}
+      {% set pending = docs|selectattr('status', 'equalto', 'pending')|list %}
+      {% if approved %}<p><span class="chip chip-ok">{{ m.icon('check', 14) }}Done</span> An admin approved your document.</p>
+      {% elif pending %}<p><span class="chip chip-warn">Waiting for review</span> Uploaded {{ fmt_date(pending[0].created_at) }}.</p>
+      {% else %}
+        {% if docs and docs[0].status == 'rejected' %}<div class="alert alert-error">Rejected: {{ docs[0].review_note }}</div>{% endif %}
+        <p class="small muted">Upload a photo of your national ID or passport. It is stored privately, only admins can open it, every view is logged, and it is never shown on your profile. <strong>This demo uses synthetic placeholder images only. Do not upload a real document.</strong></p>
+        <form method="post" action="{{ url_for('fundi.id_upload') }}" enctype="multipart/form-data">
+          {{ m.csrf() }}
+          <div class="field"><label for="f-doc">ID document photo</label><input id="f-doc" name="document" type="file" accept="image/png,image/jpeg,image/webp" required></div>
+          <button class="btn btn-sm" type="submit">{{ m.icon('lock', 16) }} Upload privately</button>
+        </form>
+      {% endif %}
+    </section>
+  </div>
+  <section class="card">
+    <h2>{{ m.icon('users', 22) }} References</h2>
+    <p class="muted small">Two past customers, on different phone numbers, who confirm they hired you. They get an SMS with a link; they are never named on your profile.</p>
+    {% for r in refs %}<div class="review row row-between"><span><strong>{{ r.name }}</strong> <span class="muted small">{{ r.phone }} {{ r.relationship_note }}</span></span>{{ m.status_chip(r.status) }}</div>{% endfor %}
+    <form method="post" action="{{ url_for('fundi.reference_add') }}" class="mt-4 grid grid-3">
+      {{ m.csrf() }}
+      {{ m.field({}, 'name', 'Their name') }}
+      {{ m.field({}, 'phone', 'Their mobile', type='tel') }}
+      {{ m.field({}, 'note', 'How they know you', required=False) }}
+      <div><button class="btn btn-sm" type="submit">Send reference request</button></div>
+    </form>
+  </section>
+  <section class="card">
+    <h2>{{ m.icon('tools', 22) }} Trade skills</h2>
+    <p>{{ p.photos|length }} of 3 portfolio photos. <a href="{{ url_for('fundi.portfolio') }}">Manage portfolio</a>.</p>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% import 'macros.html' as m with context %}
+{% for c in cards %}{{ m.fundi_card(c) }}{% endfor %}
+{% if has_more %}
+<div class="center" id="more-{{ next_url|length }}"><a class="btn btn-secondary" href="{{ next_url }}" hx-get="{{ next_url }}" hx-target="closest div" hx-swap="outerHTML">Show more fundis</a></div>
+{% endif %}

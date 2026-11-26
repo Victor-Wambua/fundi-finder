@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}How trust works · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head w-mid">
+  <p class="eyebrow">How trust works</p>
+  <h1>Why a Fundi Finder rating means something</h1>
+  <p class="lede">A star rating is only useful if you know it came from a real customer of a real job. Here is exactly how that is enforced, and where it can still fail.</p>
+</div>
+<div class="container w-mid stack-lg">
+  <section class="card" id="code">
+    <h2>{{ m.icon('lock', 24) }} 1. Reviews need a completion code</h2>
+    <ol>
+      <li>You accept a quote. The booking page shows you a six-digit <strong>completion code</strong>. Nobody else sees it, including the fundi.</li>
+      <li>On site, the fundi marks the work done in their account.</li>
+      <li>You confirm by entering the code. If you do not have data on the day, you can read it to the fundi and they type it in. Either way the code is single use.</li>
+      <li>Only now can you review, once, within 30 days. You can edit it for 14 days. The fundi can reply publicly. Anyone can report a review.</li>
+    </ol>
+    <p>Five wrong guesses lock entry for an hour; ten disable the code until an admin re-issues it.</p>
+    <p class="muted small mb-0"><strong>What it does not stop:</strong> a fundi who creates a fake customer and fake jobs. That is what the abuse checks below are for.</p>
+  </section>
+  <section class="card" id="ranking">
+    <h2>{{ m.icon('star', 24) }} 2. Ranking that resists gaming</h2>
+    <p>Fundis are ranked by a score out of 100, not by average stars:</p>
+    <ul>
+      <li><strong>55%</strong> review quality: a Bayesian average pulled toward the platform mean, so one 5-star review does not outrank sixty 4.8s. Recent reviews count more.</li>
+      <li><strong>15%</strong> completed, confirmed jobs.</li>
+      <li><strong>12%</strong> replying to requests within 24 hours.</li>
+      <li><strong>10%</strong> arriving on time.</li>
+      <li><strong>8%</strong> verification badges.</li>
+    </ul>
+    <p>New fundis keep a clean score but hold every fourth result slot in search, clearly labelled, so they can earn their first jobs. The full formula, worked examples and failure modes are in <code>docs/RANKING.md</code> in the repository.</p>
+  </section>
+  <section class="card" id="badges">
+    <h2>{{ m.icon('shield', 24) }} 3. Badges are computed from facts</h2>
+    <ul class="badge-list">
+      <li><span class="chip chip-ok">{{ m.icon('check', 14) }}Phone verified</span><span class="why">A one-time SMS code was entered.</span></li>
+      <li><span class="chip chip-ok">{{ m.icon('check', 14) }}ID checked</span><span class="why">An admin reviewed an uploaded identity document. The document is stored privately and never shown to anyone but admins.</span></li>
+      <li><span class="chip chip-ok">{{ m.icon('check', 14) }}References</span><span class="why">Two or more customers, from different phone numbers, confirmed they hired the fundi.</span></li>
+      <li><span class="chip chip-ok">{{ m.icon('check', 14) }}Trade skills</span><span class="why">Three or more portfolio photos.</span></li>
+    </ul>
+  </section>
+  <section class="card" id="abuse">
+    <h2>{{ m.icon('alert', 24) }} 4. Abuse checks</h2>
+    <p>Rate limits on sign-up, log-in, codes and requests. Heuristics flag clusters of reviewers whose accounts were created together, share a phone prefix or sign-up network, and reviewed only one fundi. Flags go to a human admin; nothing is removed automatically. Removed content can be appealed, and a different admin decides.</p>
+  </section>
+  <section class="alert alert-warn">
+    <p><strong>Honest scope.</strong> This is a portfolio build with synthetic data. There are no payments (M-Pesa is the natural next step), no real SMS, and it has not been field tested. Moderation at scale is not solved here.</p>
+  </section>
+</div>
+{% endblock %}

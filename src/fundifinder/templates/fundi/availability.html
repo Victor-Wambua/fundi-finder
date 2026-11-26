@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Availability · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Availability</h1>{% include 'fundi/_nav.html' %}</div>
+<div class="container layout-side">
+  <form method="post" class="card">
+    {{ m.csrf() }}
+    <h2>Weekly hours</h2>
+    <p class="muted small">Tick the days you normally work. Customers filtering for "available this week" see you if any day in the next seven is open.</p>
+    {% for name in weekdays %}
+    {% set r = rules.get(loop.index0) %}
+    <div class="row mt-2">
+      <label class="check nowrap"><input type="checkbox" name="day{{ loop.index0 }}"{{ ' checked' if r }}> {{ name }}</label>
+      <div><label class="visually-hidden" for="s{{ loop.index0 }}">{{ name }} start hour</label><select id="s{{ loop.index0 }}" name="start{{ loop.index0 }}">{% for h in range(5, 21) %}<option value="{{ h }}"{{ ' selected' if (r.start_hour if r else 8) == h }}>{{ '%02d' % h }}:00</option>{% endfor %}</select></div>
+      <span>to</span>
+      <div><label class="visually-hidden" for="e{{ loop.index0 }}">{{ name }} end hour</label><select id="e{{ loop.index0 }}" name="end{{ loop.index0 }}">{% for h in range(6, 25) %}<option value="{{ h }}"{{ ' selected' if (r.end_hour if r else 17) == h }}>{{ '%02d' % (h % 24) }}:00</option>{% endfor %}</select></div>
+    </div>
+    {% endfor %}
+    <button class="btn mt-4" type="submit">Save weekly hours</button>
+  </form>
+  <aside class="card">
+    <h2>Days off and extra days</h2>
+    <form method="post" action="{{ url_for('fundi.exception_add') }}">
+      {{ m.csrf() }}
+      {{ m.field({}, 'day', 'Date', type='date') }}
+      <fieldset><legend>That day I am</legend>
+        <label class="check"><input type="radio" name="available" value="0" checked> Not available</label>
+        <label class="check"><input type="radio" name="available" value="1"> Available (extra day)</label>
+      </fieldset>
+      {{ m.field({}, 'note', 'Note', required=False) }}
+      <button class="btn btn-sm" type="submit">Add date</button>
+    </form>
+    <div class="mt-4">
+      {% for e in exceptions %}
+      <div class="review row row-between"><span><strong>{{ e.day.strftime('%a %d %b') }}</strong> {% if e.available %}<span class="chip chip-ok">Available</span>{% else %}<span class="chip chip-off">Off</span>{% endif %} <span class="muted small">{{ e.note }}</span></span>
+      <form method="post" action="{{ url_for('fundi.exception_delete', exception_id=e.id) }}" class="inline-form">{{ m.csrf() }}<button class="linklike muted small" type="submit">Remove</button></form></div>
+      {% else %}<p class="muted small">No upcoming exceptions.</p>{% endfor %}
+    </div>
+  </aside>
+</div>
+{% endblock %}

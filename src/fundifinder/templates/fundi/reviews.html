@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Reviews · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Reviews</h1>{% include 'fundi/_nav.html' %}</div>
+<div class="container w-mid">
+  {% for r in items %}
+  <article class="card mt-3" id="review-{{ r.id }}">
+    <div class="row">{{ m.stars(r.rating) }}<strong>{{ reviewer_label(r.customer.name) }}</strong><span class="muted small">{{ fmt_date(r.created_at) }}</span>{{ m.status_chip(r.status) }}</div>
+    {% if r.body %}<blockquote>{{ r.body }}</blockquote>{% endif %}
+    {% if r.reply_body %}<div class="reply"><strong>Your reply</strong> {% if r.reply_removed %}<span class="chip chip-bad">Removed by moderators</span>{% endif %}<br>{{ r.reply_body }}</div>
+    {% elif r.status == 'published' %}
+      <form method="post" action="{{ url_for('fundi.reply', review_id=r.id) }}" class="mt-3">
+        {{ m.csrf() }}
+        <div class="field"><label for="rp-{{ r.id }}">Reply publicly (once)</label><textarea id="rp-{{ r.id }}" name="body" rows="2" maxlength="1000" required></textarea></div>
+        <button class="btn btn-sm" type="submit">Post reply</button>
+      </form>
+    {% endif %}
+  </article>
+  {% else %}{{ m.empty('No reviews yet', 'Reviews appear after a customer confirms a job with their code.') }}{% endfor %}
+</div>
+{% endblock %}

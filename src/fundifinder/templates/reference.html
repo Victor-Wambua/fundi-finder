@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Reference request · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container section w-narrow">
+  <div class="card">
+    <h1>Did {{ ref.fundi.user.name }} work for you?</h1>
+    {% if ref.status == RefStatus.PENDING %}
+      <p>{{ ref.fundi.user.first_name }} ({{ ref.fundi.trade.name|lower }}) listed you as a reference. Your answer is shown only as a count on their profile: you are never named.</p>
+      <form method="post" class="row">
+        {{ m.csrf() }}
+        <button class="btn" name="answer" value="yes" type="submit">Yes, they worked for me</button>
+        <button class="btn btn-secondary" name="answer" value="no" type="submit">No</button>
+      </form>
+    {% else %}
+      <p>You answered: <strong>{{ 'Yes' if ref.status == RefStatus.CONFIRMED else 'No' }}</strong>. Thank you.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

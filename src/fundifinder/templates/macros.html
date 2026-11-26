@@ -1,0 +1,150 @@
+{% macro icon(name, size=20) -%}
+<svg class="icon" width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+{%- if name == 'check' %}<path d="M4 12.5l5 5L20 6.5"/>
+{%- elif name == 'shield' %}<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5L16 9.5"/>
+{%- elif name == 'phone' %}<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>
+{%- elif name == 'call' %}<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>
+{%- elif name == 'chat' %}<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>
+{%- elif name == 'id' %}<rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.7-2.3 3-2.3s2.4.7 3 2.3M14.5 10h4M14.5 13.5h3"/>
+{%- elif name == 'users' %}<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.6 3-5.5 6-5.5s5.5 1.9 6 5.5"/><path d="M16 5.3a3 3 0 0 1 0 5.4M18 14.8c1.8.6 3 2.3 3.2 5.2"/>
+{%- elif name == 'tools' %}<path d="M14 4l6 6-3 3-6-6z"/><path d="M13 11L5 19a1.5 1.5 0 0 0 2 2l8-8"/>
+{%- elif name == 'star' %}<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z" fill="currentColor"/>
+{%- elif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>
+{%- elif name == 'pin' %}<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>
+{%- elif name == 'calendar' %}<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>
+{%- elif name == 'camera' %}<path d="M4 8h3l1.5-2.5h7L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.5"/>
+{%- elif name == 'flag' %}<path d="M5 21V4M5 5h12l-2 4 2 4H5"/>
+{%- elif name == 'lock' %}<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>
+{%- elif name == 'alert' %}<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5v.2"/>
+{%- elif name == 'search' %}<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>
+{%- elif name == 'sparkle' %}<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>
+{%- elif name == 'water' %}<path d="M12 3c3 4 5 6.5 5 9a5 5 0 0 1-10 0c0-2.5 2-5 5-9z"/>
+{%- elif name == 'bolt' %}<path d="M13 2.5L5 14h6l-1 7.5L19 10h-6z"/>
+{%- elif name == 'trowel' %}<path d="M15 4l6 6-8 6-5-5z"/><path d="M9 15l-5 5"/>
+{%- elif name == 'hammer' %}<path d="M12 6l6 6 2-2-6-6z"/><path d="M14.5 9.5L4.5 19.5"/>
+{%- elif name == 'scissors' %}<circle cx="6" cy="7" r="2.8"/><circle cx="6" cy="17" r="2.8"/><path d="M8.3 8.7L20 18M8.3 15.3L20 6"/>
+{%- elif name == 'roller' %}<rect x="4" y="3.5" width="13" height="5.5" rx="1.5"/><path d="M17 6.2h3v5H12v3.3M10.5 14.5h3V21h-3z"/>
+{%- elif name == 'flame' %}<path d="M12 3c1 3 4.5 4.5 4.5 8.5a4.5 4.5 0 0 1-9 0c0-2 1-3.2 1.6-4.7C9.8 8 11 6 12 3z"/>
+{%- elif name == 'gear' %}<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>
+{%- elif name == 'plus' %}<path d="M12 5v14M5 12h14"/>
+{%- elif name == 'arrow' %}<path d="M5 12h14M13 6l6 6-6 6"/>
+{%- elif name == 'inbox' %}<path d="M3.5 13l2.5-8h12l2.5 8v6h-17z"/><path d="M3.5 13h5l1 2.5h5l1-2.5h5"/>
+{%- endif -%}
+</svg>
+{%- endmacro %}
+
+{% macro trade_icon(slug, size=20) -%}
+{{ icon({'plumber':'water','electrician':'bolt','mason':'trowel','carpenter':'hammer','tailor':'scissors','painter':'roller','welder':'flame','appliance-repair':'gear'}.get(slug, 'tools'), size) }}
+{%- endmacro %}
+
+{% macro logo(size=30) -%}
+<svg width="{{ size }}" height="{{ size }}" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="#fca311" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M10.5 16.5l3.8 3.8 7.2-8.2" fill="none" stroke="#14213d" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+{%- endmacro %}
+
+{% macro stars(n, size=16) -%}
+<span class="stars" role="img" aria-label="{{ n }} out of 5 stars">{% for i in range(1, 6) %}<svg class="icon{{ '' if i <= n else ' off' }}" width="{{ size }}" height="{{ size }}" aria-hidden="true" focusable="false"><use href="#i-star"/></svg>{% endfor %}</span>
+{%- endmacro %}
+
+{% macro badge_chip(badge) -%}
+<span class="chip chip-ok" title="{{ badge.earned_because }}">{{ icon('check', 14) }}{{ badge.label }}</span>
+{%- endmacro %}
+
+{% macro field(form, name, label, type='text', hint='', value=None, required=True, attrs='') -%}
+{% set err = errors.get(name) if errors is defined and errors else None %}
+<div class="field{{ ' has-error' if err }}">
+  <label for="f-{{ name }}">{{ label }}{% if not required %} <span class="muted">(optional)</span>{% endif %}</label>
+  <input id="f-{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ value if value is not none else (form.get(name, '') if form else '') }}"{% if required %} required{% endif %}{% if err %} aria-invalid="true" aria-describedby="e-{{ name }}"{% elif hint %} aria-describedby="h-{{ name }}"{% endif %} {{ attrs|safe }}>
+  {% if hint and not err %}<span class="hint" id="h-{{ name }}">{{ hint }}</span>{% endif %}
+  {% if err %}<span class="error" id="e-{{ name }}">{{ err }}</span>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro textarea(form, name, label, hint='', rows=4, required=True, maxlength=1500) -%}
+{% set err = errors.get(name) if errors is defined and errors else None %}
+<div class="field{{ ' has-error' if err }}">
+  <label for="f-{{ name }}">{{ label }}{% if not required %} <span class="muted">(optional)</span>{% endif %}</label>
+  <textarea id="f-{{ name }}" name="{{ name }}" rows="{{ rows }}" maxlength="{{ maxlength }}"{% if required %} required{% endif %}{% if err %} aria-invalid="true" aria-describedby="e-{{ name }}"{% elif hint %} aria-describedby="h-{{ name }}"{% endif %}>{{ form.get(name, '') if form else '' }}</textarea>
+  {% if hint and not err %}<span class="hint" id="h-{{ name }}">{{ hint }}</span>{% endif %}
+  {% if err %}<span class="error" id="e-{{ name }}">{{ err }}</span>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro select(name, label, options, selected=None, blank='', hint='', required=False) -%}
+{% set err = errors.get(name) if errors is defined and errors else None %}
+<div class="field{{ ' has-error' if err }}">
+  <label for="f-{{ name }}">{{ label }}</label>
+  <select id="f-{{ name }}" name="{{ name }}"{% if required %} required{% endif %}{% if err %} aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %}>
+    {% if blank %}<option value="">{{ blank }}</option>{% endif %}
+    {% for value, text in options %}<option value="{{ value }}"{{ ' selected' if selected|string == value|string }}>{{ text }}</option>{% endfor %}
+  </select>
+  {% if hint %}<span class="hint">{{ hint }}</span>{% endif %}
+  {% if err %}<span class="error" id="e-{{ name }}">{{ err }}</span>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro hist(histogram, total) -%}
+<div class="hist" role="group" aria-label="Rating breakdown">
+{% for star, n in histogram.items() %}
+  <div class="hist-row">
+    <span>{{ star }} star</span>
+    <svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="hist-track" width="100" height="10" rx="5"/>{% if n %}<rect class="hist-bar" width="{{ (100 * n / total)|round(1) if total else 0 }}" height="10" rx="5"/>{% endif %}</svg>
+    <span class="num muted">{{ n }}</span>
+  </div>
+{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro fundi_card(c, areas_shown=3) -%}
+{% set p = c.profile %}
+<article class="fcard" aria-labelledby="fc-{{ p.id }}">
+  {% if c.boosted %}<span class="chip chip-info new-ribbon" title="A reserved slot: new fundis are shown here so they are not buried below established ones.">{{ icon('sparkle', 14) }}New on Fundi Finder</span>{% endif %}
+  <div>
+    <div class="fcard-head">
+      <div class="avatar av-{{ p.id % 8 }}" aria-hidden="true">{{ p.user.name[0] }}</div>
+      <div>
+        <h3 id="fc-{{ p.id }}"><a href="{{ url_for('public.profile', fundi_id=p.id) }}">{{ p.user.name }}</a></h3>
+        <div class="muted">{{ trade_icon(p.trade.slug, 16) }} {{ p.trade.name }} · {{ p.years_experience }} yrs</div>
+        <div class="rating mt-1">
+          {% if c.raw_average is not none %}{{ icon('star', 16) }}<span class="num">{{ '%.1f'|format(c.raw_average) }}</span><span class="muted fw-normal">from {{ c.review_count }} confirmed-job review{{ '' if c.review_count == 1 else 's' }}</span>
+          {% else %}<span class="muted fw-normal">No reviews yet</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% if p.headline %}<p class="headline">{{ p.headline }}</p>{% endif %}
+    <div class="chips mt-2">
+      {% for b in c.badges %}{{ badge_chip(b) }}{% endfor %}
+      {% if not c.badges %}<span class="chip chip-off">Not verified yet</span>{% endif %}
+    </div>
+    <ul class="proof">
+      <li>{{ icon('tools', 16) }}<span><strong class="num">{{ c.completed_jobs }}</strong> job{{ '' if c.completed_jobs == 1 else 's' }} completed and confirmed</span></li>
+      {% if c.stats.punctual_eligible >= 3 %}<li>{{ icon('clock', 16) }}<span>Arrives on time for <strong class="num">{{ (100 * c.breakdown.punctuality)|round|int }}%</strong> of jobs</span></li>{% endif %}
+      {% if c.median_response_hours is not none %}<li>{{ icon('chat', 16) }}<span>Usually replies within <strong>{{ response_label(c.median_response_hours) }}</strong></span></li>{% endif %}
+      <li>{{ icon('pin', 16) }}<span>{{ p.areas[:areas_shown]|map(attribute='name')|join(', ') }}{% if p.areas|length > areas_shown %} +{{ p.areas|length - areas_shown }} more{% endif %}</span></li>
+    </ul>
+  </div>
+  <div class="fcard-side">
+    <div>
+      <div class="muted small">Typical jobs</div>
+      <div class="price num">{{ kes(c.price_min) }} – {{ kes(c.price_max, bare=True) }}</div>
+      <div class="mt-2">{% if c.available_this_week %}<span class="chip chip-ok">Available this week</span>{% else %}<span class="chip chip-off">Booked this week</span>{% endif %}</div>
+    </div>
+    <div class="stack">
+      <a class="btn btn-sm btn-block" href="{{ url_for('public.profile', fundi_id=p.id) }}">View proof</a>
+      <a class="btn btn-sm btn-secondary btn-block" href="{{ url_for('customer.new_request', fundi=p.id) }}">Request a quote</a>
+    </div>
+  </div>
+</article>
+{%- endmacro %}
+
+{% macro empty(title, text) -%}
+<div class="empty card">{{ icon('inbox', 48) }}<h3>{{ title }}</h3><p>{{ text }}</p></div>
+{%- endmacro %}
+
+{% macro status_chip(status) -%}
+{% set tone = {'completed':'ok','published':'ok','approved':'ok','confirmed':'ok','accepted':'ok','upheld':'warn','open':'warn','pending':'warn','awaiting_confirmation':'warn','quoted':'info','booked':'info','in_progress':'info','cancelled':'off','declined':'off','no_show':'bad','rejected':'bad','removed':'bad','dismissed':'off','superseded':'off'}.get(status, 'off') %}
+<span class="chip chip-{{ tone }}">{{ status|replace('_', ' ')|capitalize }}</span>
+{%- endmacro %}

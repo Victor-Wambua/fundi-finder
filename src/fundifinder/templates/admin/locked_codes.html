@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Locked codes · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Locked completion codes</h1>{% include 'admin/_nav.html' %}
+<p class="lede">A code is disabled after ten wrong attempts. Check with the customer by phone before re-issuing.</p></div>
+<div class="container">
+  {% for j in items %}
+  <div class="card card-tight mt-3 row row-between">
+    <div class="grow"><strong>Job #{{ j.id }}</strong> · {{ j.fundi.user.name }} for {{ j.customer.name }} <div class="muted small">{{ j.code_total_failures }} wrong attempts</div></div>
+    <form method="post" action="{{ url_for('admin.reissue', job_id=j.id) }}">{{ m.csrf() }}<button class="btn btn-sm" type="submit">Re-issue code</button></form>
+  </div>
+  {% else %}{{ m.empty('None locked', 'No completion codes are disabled.') }}{% endfor %}
+</div>
+{% endblock %}

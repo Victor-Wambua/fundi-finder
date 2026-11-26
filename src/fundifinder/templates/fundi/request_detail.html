@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}{{ req.job_type.name }} request · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head w-mid">
+  <p class="muted small"><a href="{{ url_for('fundi.requests_inbox') }}">Requests</a> / {{ req.job_type.name }}</p>
+  <div class="row row-between"><h1 class="mb-0">{{ req.job_type.name }}</h1>{{ m.status_chip(req.status) }}</div>
+  <p class="muted">{{ req.customer.first_name }} · {{ req.area.name }} · wanted {{ fmt_dt(req.preferred_time) }}</p>
+  <div class="card stack">
+    <p class="mb-0">{{ req.description }}</p>
+    {% if req.photo_name %}<img src="{{ url_for('customer.request_photo', request_id=req.id) }}" alt="Photo from the customer" width="320" class="photo">{% endif %}
+  </div>
+  {% if service or bench %}
+  <p class="muted small mt-3">{% if service %}Your range for this job: {{ kes(service.price_min_kes) }} – {{ kes(service.price_max_kes, bare=True) }}. {% endif %}{% if bench %}Customers on the platform paid a median {{ kes(bench.median_kes) }} ({{ bench.sample_size }} jobs).{% endif %}</p>
+  {% endif %}
+  {% if req.status in ('open', 'quoted') %}
+  <form method="post" action="{{ url_for('fundi.send_quote', request_id=req.id) }}" class="card mt-4" novalidate>
+    {{ m.csrf() }}
+    <h2>{{ 'Send a new quote' if req.status == 'quoted' else 'Send a quote' }}</h2>
+    {{ m.field(form, 'amount', 'Price (KES)', type='number', attrs='min="100" step="50" inputmode="numeric"') }}
+    {{ m.field(form, 'start', 'Start time', type='datetime-local', value=form.get('start') or fmt_dt_input(default_start)) }}
+    {{ m.textarea(form, 'message', 'Message to the customer', required=False, rows=3, hint='What the price includes, materials, anything you need.', maxlength=800) }}
+    <button class="btn" type="submit">Send quote</button>
+  </form>
+  <form method="post" action="{{ url_for('fundi.decline', request_id=req.id) }}" class="mt-3">{{ m.csrf() }}<button class="btn btn-danger btn-sm" type="submit">Decline this request</button></form>
+  {% endif %}
+</div>
+{% endblock %}

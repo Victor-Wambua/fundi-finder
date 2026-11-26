@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}{{ job.job_type.name }} job · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head w-mid">
+  <p class="muted small"><a href="{{ url_for('fundi.jobs') }}">Jobs</a> / Job</p>
+  <div class="row row-between"><h1 class="mb-0">{{ job.job_type.name }}</h1>{{ m.status_chip(job.status) }}</div>
+  <p class="muted">{{ job.customer.first_name }} · {{ job.area.name }} · {{ fmt_dt(job.scheduled_for) }} · <strong>{{ kes(job.price_kes) }}</strong> (payment is between you and the customer)</p>
+  <div class="card stack">
+    <p class="mb-0">{{ job.request.description }}</p>
+    {% if job.request.photo_name %}<img src="{{ url_for('customer.request_photo', request_id=job.request_id) }}" alt="Photo from the customer" width="320" class="photo">{% endif %}
+  </div>
+  {% if job.status == 'booked' %}
+    <form method="post" action="{{ url_for('fundi.start', job_id=job.id) }}" class="mt-4">{{ m.csrf() }}<button class="btn" type="submit">I have arrived and started</button></form>
+    <p class="muted small mt-2">Starting records your arrival time. Arriving within 15 minutes of the booked time counts as on time.</p>
+  {% elif job.status == 'in_progress' %}
+    <form method="post" action="{{ url_for('fundi.mark_complete', job_id=job.id) }}" class="mt-4">{{ m.csrf() }}<button class="btn" type="submit">{{ m.icon('check', 18) }} Work is done</button></form>
+  {% elif job.status == 'awaiting_confirmation' %}
+    <div class="card mt-4">
+      <h2>Ask the customer for their completion code</h2>
+      <p>The customer sees a six-digit code in their booking. When they are happy with the work, they enter it themselves or read it to you. You never see it until they tell you.</p>
+      <form method="post" action="{{ url_for('fundi.enter_code', job_id=job.id) }}">
+        {{ m.csrf() }}
+        <div class="field"><label for="f-code">Code from the customer</label><input class="code-input" id="f-code" name="code" inputmode="numeric" autocomplete="off" maxlength="7" required></div>
+        <button class="btn" type="submit">Confirm completion</button>
+      </form>
+    </div>
+  {% elif job.status == 'completed' %}
+    <div class="alert alert-ok mt-4">Confirmed {{ fmt_dt(job.completed_at) }} by the {{ job.code_confirmed_by }}. {% if job.review %}Reviewed: {{ job.review.rating }} stars.{% else %}The customer can now review it.{% endif %}</div>
+  {% endif %}
+  {% if job.status in ('booked', 'in_progress') %}
+    <form method="post" action="{{ url_for('fundi.cancel', job_id=job.id) }}" class="mt-4">{{ m.csrf() }}<input type="hidden" name="reason" value="Cancelled by fundi"><button class="btn btn-danger btn-sm" type="submit">Cancel job</button><span class="muted small"> Cancelling counts against your on-time record.</span></form>
+  {% endif %}
+</div>
+{% endblock %}

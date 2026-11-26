@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Dev SMS outbox · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head">
+  <h1>Dev SMS outbox</h1>
+  <p class="lede">The console SMS provider keeps the last 200 messages here. No real SMS is ever sent. This page only exists when <code>FUNDI_DEV_OUTBOX=1</code>.</p>
+  <div class="card">
+    {% for msg in messages %}
+      <div class="review"><strong class="num">{{ msg.to }}</strong> <span class="muted small">{{ fmt_dt(msg.sent_at) }}</span><p class="mb-0">{{ msg.body }}</p></div>
+    {% else %}<p class="muted">Nothing sent yet.</p>{% endfor %}
+  </div>
+</div>
+{% endblock %}

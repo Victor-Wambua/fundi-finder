@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Jobs · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Jobs</h1>{% include 'fundi/_nav.html' %}</div>
+<div class="container">
+  {% for j in items %}
+  <div class="card card-tight mt-3 row row-between">
+    <div class="grow"><strong><a href="{{ url_for('fundi.job_detail', job_id=j.id) }}">{{ j.job_type.name }}</a></strong> · {{ j.area.name }}
+      <div class="muted small">{{ j.customer.first_name }} · {{ fmt_dt(j.scheduled_for) }} · {{ kes(j.price_kes) }}</div></div>
+    {{ m.status_chip(j.status) }}
+  </div>
+  {% else %}{{ m.empty('No jobs yet', 'When a customer accepts your quote, the job appears here.') }}{% endfor %}
+</div>
+{% endblock %}

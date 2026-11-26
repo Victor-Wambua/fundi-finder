@@ -1,0 +1,4 @@
+{% set tabs = [('fundi.dashboard', 'Overview'), ('fundi.requests_inbox', 'Requests'), ('fundi.jobs', 'Jobs'), ('fundi.reviews_page', 'Reviews'), ('fundi.profile_edit', 'Profile & prices'), ('fundi.availability', 'Availability'), ('fundi.portfolio', 'Portfolio'), ('fundi.verification_page', 'Verification')] %}
+<nav class="tabs" aria-label="Workshop">
+  {% for ep, label in tabs %}<a href="{{ url_for(ep) }}"{% if request.endpoint == ep %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+</nav>

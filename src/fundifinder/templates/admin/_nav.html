@@ -1,0 +1,4 @@
+{% set tabs = [('admin.dashboard', 'Overview'), ('admin.verification_queue', 'Verification'), ('admin.reports', 'Reports'), ('admin.abuse', 'Abuse flags'), ('admin.locked_codes', 'Locked codes'), ('admin.users', 'Users'), ('admin.audit_log', 'Audit log')] %}
+<nav class="tabs" aria-label="Admin">
+  {% for ep, label in tabs %}<a href="{{ url_for(ep) }}"{% if request.endpoint == ep %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+</nav>

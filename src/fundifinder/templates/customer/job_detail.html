@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}{{ job.job_type.name }} job · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head w-mid">
+  <p class="muted small"><a href="{{ url_for('customer.activity') }}">My jobs</a> / Job</p>
+  <div class="row row-between"><h1 class="mb-0">{{ job.job_type.name }}</h1>{{ m.status_chip(job.status) }}</div>
+  <p class="muted">{{ job.fundi.user.name }} · {{ job.area.name }} · {{ fmt_dt(job.scheduled_for) }} · <strong>{{ kes(job.price_kes) }}</strong> (pay the fundi directly; no payment is processed here)</p>
+
+  {% if job.status in ('booked', 'in_progress', 'awaiting_confirmation', 'completed') %}
+  <ol class="steps mb-0" aria-label="Job progress">
+    {% for key, label in steps %}
+      <li class="{{ 'done' if (current > loop.index0 or job.status == 'completed') else ('now' if current == loop.index0 else '') }}">{{ m.icon('check', 14) if (current > loop.index0 or job.status == 'completed') }} {{ label }}</li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+
+  {% if code %}
+  <div class="ticket mt-4">
+    <p>YOUR COMPLETION CODE</p>
+    <span class="code num" aria-label="Completion code {{ code }}">{{ code[:3] }} {{ code[3:] }}</span>
+    <p>Keep it private until the work is finished and you are happy. Enter it below, or read it to {{ job.fundi.user.first_name }} so they can enter it on their phone.</p>
+  </div>
+  {% elif job.code_invalidated and job.status == 'awaiting_confirmation' %}
+  <div class="alert alert-error mt-4">The code was disabled after too many wrong attempts. Support must re-issue it.</div>
+  {% endif %}
+
+  {% if job.status == 'awaiting_confirmation' %}
+  <div class="card mt-4">
+    <h2>{{ job.fundi.user.first_name }} says the work is done</h2>
+    <p>If you are satisfied, confirm with your code. This unlocks your review.</p>
+    <form method="post" action="{{ url_for('customer.confirm', job_id=job.id) }}">
+      {{ m.csrf() }}
+      <div class="field"><label for="f-code">Completion code</label><input class="code-input" id="f-code" name="code" inputmode="numeric" autocomplete="off" maxlength="7" required></div>
+      <button class="btn" type="submit">Confirm completion</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if job.status == 'completed' %}
+    {% if can_review %}
+    <div class="card mt-4">
+      <h2>Review {{ job.fundi.user.first_name }}</h2>
+      <p class="muted small">Your review is tied to this confirmed job. You can edit it for 14 days.</p>
+      <form method="post" action="{{ url_for('customer.create_review', job_id=job.id) }}">
+        {{ m.csrf() }}
+        <fieldset><legend>Rating</legend>
+          <div class="rating-pick">{% for n in range(5, 0, -1) %}<label><input type="radio" name="rating" value="{{ n }}" required> {{ n }} star{{ '' if n == 1 else 's' }}</label>{% endfor %}</div>
+        </fieldset>
+        {{ m.textarea({}, 'body', 'What was it like?', hint='Was the work good, was the price as quoted, did they turn up on time?', required=False, rows=4) }}
+        <button class="btn" type="submit">Publish review</button>
+      </form>
+    </div>
+    {% elif job.review %}
+    <div class="card mt-4">
+      <h2>Your review</h2>
+      <div class="row">{{ m.stars(job.review.rating) }}<span class="muted small">{{ fmt_date(job.review.created_at) }}</span>{{ m.status_chip(job.review.status) }}</div>
+      {% if job.review.body %}<blockquote>{{ job.review.body }}</blockquote>{% endif %}
+      {% if job.review.reply_body and not job.review.reply_removed %}<div class="reply"><strong>{{ job.fundi.user.first_name }} replied:</strong> {{ job.review.reply_body }}</div>{% endif %}
+      {% if can_edit_review %}
+      <details class="mt-3"><summary>Edit review</summary>
+        <form method="post" action="{{ url_for('customer.edit_review', review_id=job.review.id) }}" class="mt-3">
+          {{ m.csrf() }}
+          <fieldset><legend>Rating</legend><div class="rating-pick">{% for n in range(5, 0, -1) %}<label><input type="radio" name="rating" value="{{ n }}"{{ ' checked' if job.review.rating == n }} required> {{ n }}</label>{% endfor %}</div></fieldset>
+          <div class="field"><label for="f-body">Review</label><textarea id="f-body" name="body" rows="4" maxlength="1500">{{ job.review.body }}</textarea></div>
+          <button class="btn btn-sm" type="submit">Save changes</button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+    {% else %}
+      <div class="alert mt-4">{{ review_block }}</div>
+    {% endif %}
+  {% endif %}
+
+  {% if job.status in ('booked', 'in_progress') %}
+  <div class="row mt-4">
+    {% if can_report_no_show %}
+    <form method="post" action="{{ url_for('customer.no_show', job_id=job.id) }}">{{ m.csrf() }}<button class="btn btn-danger btn-sm" type="submit">Fundi did not arrive</button></form>
+    {% endif %}
+    <form method="post" action="{{ url_for('customer.cancel_job', job_id=job.id) }}">{{ m.csrf() }}<input type="hidden" name="reason" value="Cancelled by customer"><button class="btn btn-secondary btn-sm" type="submit">Cancel booking</button></form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

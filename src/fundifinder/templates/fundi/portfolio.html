@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Portfolio · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Portfolio</h1>{% include 'fundi/_nav.html' %}</div>
+<div class="container layout-side">
+  <section>
+    <p class="muted">Photos of your own work. Three or more earn the <strong>Trade skills</strong> badge. Photos are public and location data is stripped on upload.</p>
+    {% if p.photos %}
+    <div class="gallery mt-3">
+      {% for ph in p.photos %}
+      <figure><img src="{{ url_for('public.portfolio_image', name=ph.storage_name) }}" alt="{{ ph.caption or 'Portfolio photo' }}" width="320" height="240" loading="lazy"><figcaption>{{ ph.caption }}
+        <form method="post" action="{{ url_for('fundi.portfolio_delete', photo_id=ph.id) }}" class="inline-form">{{ m.csrf() }}<button class="linklike muted small" type="submit">Remove</button></form></figcaption></figure>
+      {% endfor %}
+    </div>
+    {% else %}{{ m.empty('No photos yet', 'Add three photos of finished work to earn a badge.') }}{% endif %}
+  </section>
+  <form method="post" enctype="multipart/form-data" class="card">
+    {{ m.csrf() }}
+    <h2>Add a photo</h2>
+    <div class="field"><label for="f-photo">Photo</label><input id="f-photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp" required><span class="hint">PNG, JPEG or WebP, up to 5 MB.</span></div>
+    {{ m.field({}, 'caption', 'Caption', required=False, attrs='maxlength="140"') }}
+    <button class="btn" type="submit">{{ m.icon('camera', 18) }} Upload</button>
+  </form>
+</div>
+{% endblock %}

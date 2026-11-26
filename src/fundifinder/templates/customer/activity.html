@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}My jobs · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head">
+  <h1>My jobs</h1>
+  {% if not user.phone_verified_at %}
+    <div class="alert alert-warn">Your phone number is not verified yet, so you cannot request quotes. <a href="{{ url_for('auth.verify_phone') }}">Verify it</a>.</div>
+  {% endif %}
+</div>
+<div class="container stack-lg">
+  <section>
+    <h2>Requests and quotes</h2>
+    {% for r in requests %}
+    <div class="card card-tight mt-3 row row-between">
+      <div class="grow">
+        <strong><a href="{{ url_for('customer.request_detail', request_id=r.id) }}">{{ r.job_type.name }}</a></strong> with {{ r.fundi.user.name }}
+        <div class="muted small">Sent {{ fmt_date(r.created_at) }} · wanted {{ fmt_dt(r.preferred_time) }}</div>
+      </div>
+      {{ m.status_chip(r.status) }}
+      {% if r.status == 'quoted' %}<a class="btn btn-sm" href="{{ url_for('customer.request_detail', request_id=r.id) }}">See quote</a>{% endif %}
+    </div>
+    {% else %}
+      <div class="mt-3">{{ m.empty('No open requests', 'Find a fundi and request a quote to get started.') }}</div>
+    {% endfor %}
+    <p class="mt-3"><a class="btn btn-secondary" href="{{ url_for('public.search') }}">Find a fundi</a></p>
+  </section>
+  <section>
+    <h2>Booked and past jobs</h2>
+    {% for j in jobs %}
+    <div class="card card-tight mt-3 row row-between">
+      <div class="grow">
+        <strong><a href="{{ url_for('customer.job_detail', job_id=j.id) }}">{{ j.job_type.name }}</a></strong> with {{ j.fundi.user.name }}
+        <div class="muted small">{{ fmt_dt(j.scheduled_for) }} · {{ kes(j.price_kes) }}</div>
+      </div>
+      {{ m.status_chip(j.status) }}
+      {% if j.status == 'completed' and not j.review %}<span class="chip chip-warn">Review waiting</span>{% endif %}
+    </div>
+    {% else %}
+      <div class="mt-3">{{ m.empty('No jobs yet', 'Accepted quotes become bookings here, with your completion code.') }}</div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

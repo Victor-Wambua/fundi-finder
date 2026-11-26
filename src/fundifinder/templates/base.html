@@ -1,0 +1,51 @@
+{% import 'macros.html' as m with context %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#14213d">
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
+  <meta name="description" content="{% block description %}Find and book local fundis with a track record you can check: reviews only from jobs that were really done.{% endblock %}">
+  <title>{% block title %}Fundi Finder{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="{{ url_for('static', filename='js/vendor/htmx.min.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body data-csrf="{{ csrf_token() }}">
+  <svg class="visually-hidden" width="0" height="0" aria-hidden="true" focusable="false"><symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z" fill="currentColor"/></symbol></svg>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="{{ url_for('public.home') }}">{{ m.logo(30) }}<span>Fundi Finder</span></a>
+      <nav class="nav" aria-label="Main">
+        <a href="{{ url_for('public.search') }}"{% if request.endpoint == 'public.search' %} aria-current="page"{% endif %}>Find a fundi</a>
+        <a href="{{ url_for('public.trust') }}"{% if request.endpoint == 'public.trust' %} aria-current="page"{% endif %}>How trust works</a>
+        {% if user %}
+          {% if user.is_customer %}<a href="{{ url_for('customer.activity') }}">My jobs</a>{% endif %}
+          {% if user.is_fundi %}<a href="{{ url_for('fundi.dashboard') }}">My workshop</a>{% endif %}
+          {% if user.is_admin %}<a href="{{ url_for('admin.dashboard') }}">Admin</a>{% endif %}
+          <form method="post" action="{{ url_for('auth.logout') }}">{{ m.csrf() }}<button class="linklike" type="submit">Log out ({{ user.first_name }})</button></form>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">Log in</a>
+          <a class="btn btn-sm" href="{{ url_for('auth.signup') }}">Sign up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="container flash" role="status">{% for cat, msg in messages %}<div class="alert alert-{{ cat }}">{{ msg }}</div>{% endfor %}</div>{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div><strong>Fundi Finder</strong> is a portfolio build by Victor Wambua. Every fundi, customer, job and review here is synthetic sample data.</div>
+      <div>No payments are processed (M-Pesa would be the natural next step) and no real SMS is sent. <a href="{{ url_for('public.trust') }}">How trust works</a></div>
+    </div>
+  </footer>
+</body>
+</html>

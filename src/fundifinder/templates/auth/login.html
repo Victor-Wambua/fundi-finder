@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Log in · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container section w-narrow">
+  <h1>Log in</h1>
+  <form method="post" class="card" novalidate>
+    {{ m.csrf() }}
+    {{ m.field(form, 'email', 'Email', type='email', attrs='autocomplete="email"') }}
+    {{ m.field(form, 'password', 'Password', type='password', value='', attrs='autocomplete="current-password"') }}
+    <button class="btn btn-block" type="submit">Log in</button>
+    <p class="muted small mt-3 mb-0">New here? <a href="{{ url_for('auth.signup') }}">Create an account</a></p>
+  </form>
+  <details class="mt-4 small">
+    <summary>Demo accounts (sample data)</summary>
+    <p>After <code>make seed</code>: <code>customer@fundifinder.test</code>, <code>fundi@fundifinder.test</code>, <code>admin@fundifinder.test</code> and <code>admin2@fundifinder.test</code>. The password for all of them is <code>demo-password-123</code>.</p>
+  </details>
+</div>
+{% endblock %}

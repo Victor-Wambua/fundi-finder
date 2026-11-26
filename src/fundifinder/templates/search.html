@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}{% if trade %}{{ trade.plural }}{% else %}Find a fundi{% endif %}{% if area %} in {{ area.name }}{% endif %} · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head">
+  <h1>{% if trade %}{{ trade.plural }}{% else %}Find a fundi{% endif %}{% if area %} in {{ area.name }}{% endif %}</h1>
+  <p class="lede">Ranked by confirmed-job evidence, not by who has the most stars.</p>
+</div>
+<div class="container">
+  <form class="filters" action="{{ url_for('public.search') }}" method="get"
+        hx-get="{{ url_for('public.search') }}" hx-target="#results" hx-push-url="true"
+        hx-trigger="change, submit, keyup changed delay:400ms from:input[type=number]">
+    <div class="field mb-0">
+      <label for="s-trade">Trade</label>
+      <select id="s-trade" name="trade">
+        <option value="">Any trade</option>
+        {% for t in trades %}<option value="{{ t.slug }}"{{ ' selected' if trade and trade.id == t.id }}>{{ t.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field mb-0">
+      <label for="s-area">Area</label>
+      <select id="s-area" name="area">
+        <option value="">Anywhere</option>
+        {% for a in areas %}<option value="{{ a.slug }}"{{ ' selected' if area and area.id == a.id }}>{{ a.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <label class="check"><input type="checkbox" name="verified" value="1"{{ ' checked' if filters.verified_only }}> Verified (2+ badges)</label>
+    <label class="check"><input type="checkbox" name="available" value="1"{{ ' checked' if filters.available_week }}> Available this week</label>
+    <div class="field mb-0"><label for="s-min">Min KES</label><input id="s-min" type="number" name="min_price" min="0" step="100" inputmode="numeric" value="{{ args.get('min_price', '') }}"></div>
+    <div class="field mb-0"><label for="s-max">Max KES</label><input id="s-max" type="number" name="max_price" min="0" step="100" inputmode="numeric" value="{{ args.get('max_price', '') }}"></div>
+    <button class="btn btn-secondary" type="submit">Search</button>
+  </form>
+  <div id="results" class="mt-4" aria-live="polite">
+    {% include '_results.html' %}
+  </div>
+</div>
+{% endblock %}

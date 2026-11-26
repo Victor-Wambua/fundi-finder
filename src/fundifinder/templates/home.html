@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Fundi Finder: hire a fundi with a track record you can check{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <div>
+      <p class="eyebrow">Plumbers · electricians · masons · tailors · more</p>
+      <h1>Hire the fundi your neighbours would <em>recommend</em>.</h1>
+      <p class="lede">Every review here comes from a job that was really done, confirmed with a code only the customer holds. No bought stars, no strangers.</p>
+      <form class="finder" action="{{ url_for('public.search') }}" method="get">
+        <div class="field mb-0">
+          <label for="home-trade">What do you need?</label>
+          <select id="home-trade" name="trade">
+            <option value="">Any trade</option>
+            {% for t in trades %}<option value="{{ t.slug }}">{{ t.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field mb-0">
+          <label for="home-area">Where?</label>
+          <select id="home-area" name="area">
+            <option value="">Anywhere in Nairobi</option>
+            {% for a in areas %}<option value="{{ a.slug }}">{{ a.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <button class="btn" type="submit">{{ m.icon('search', 18) }} Find a fundi</button>
+      </form>
+      <p class="muted small mt-3">Sample data: {{ totals.fundis }} synthetic fundis, {{ totals.jobs }} confirmed jobs, {{ totals.reviews }} reviews.</p>
+    </div>
+    <svg class="hero-art" viewBox="0 0 520 440" role="img" aria-label="A pegboard with a spanner, hammer and tape measure, and a completion code ticket">
+      <defs><pattern id="pegs" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="14" cy="14" r="2.4" class="art-peg"/></pattern></defs>
+      <rect x="8" y="8" width="504" height="424" rx="26" class="art-board" stroke-width="2"/>
+      <rect x="8" y="8" width="504" height="424" rx="26" fill="url(#pegs)"/>
+      <g transform="translate(78 52) rotate(-8 20 90)">
+        <path class="art-fill" d="M20 70 L20 158 a10 10 0 0 0 20 0 L40 70 a34 34 0 1 0 -20 0z"/>
+        <rect x="23" y="2" width="14" height="38" rx="3" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/>
+      </g>
+      <g transform="translate(176 62) rotate(10 30 100)">
+        <rect class="art-tool" x="22" y="34" width="16" height="150" rx="6"/>
+        <path class="art-fill" d="M-6 8 h68 a6 6 0 0 1 6 6 v18 a6 6 0 0 1 -6 6 h-68z"/>
+      </g>
+      <g transform="translate(78 280)">
+        <circle class="art-fill" cx="48" cy="48" r="46"/>
+        <circle class="art-tool" cx="48" cy="48" r="20"/>
+        <circle cx="48" cy="48" r="4" fill="var(--ink)"/>
+        <path class="art-tool" d="M94 70 h40 v14 h-40"/>
+      </g>
+      <g transform="translate(236 238)">
+        <path class="art-ticket" d="M16 0 h216 a16 16 0 0 1 16 16 v128 a16 16 0 0 1 -16 16 h-216 a16 16 0 0 1 -16 -16 v-128 a16 16 0 0 1 16 -16z"/>
+        <circle cx="0" cy="80" r="12" class="art-board"/>
+        <circle cx="248" cy="80" r="12" class="art-board"/>
+        <text x="124" y="40" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="2" class="art-ticket-text">COMPLETION CODE</text>
+        <text x="124" y="92" text-anchor="middle" font-size="40" class="art-ticket-code" letter-spacing="4">482 913</text>
+        <text x="124" y="124" text-anchor="middle" font-size="12" class="art-ticket-text">Read it out when the job is done.</text>
+        <text x="124" y="142" text-anchor="middle" font-size="12" class="art-ticket-text">One use. One review.</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<section class="section container">
+  <p class="eyebrow">Proof, not vanity</p>
+  <h2>Three rules that make a rating worth reading</h2>
+  <div class="grid grid-3 mt-4">
+    <div class="card">
+      <h3>{{ m.icon('lock', 22) }} Reviews need a real job</h3>
+      <p>The fundi marks the work done. You confirm with the one-time code from your booking. Only then can you review, once.</p>
+    </div>
+    <div class="card">
+      <h3>{{ m.icon('star', 22) }} Ranking resists gaming</h3>
+      <p>One 5-star review does not beat sixty honest 4.8s. Scores lean on the platform average until a fundi has real evidence.</p>
+    </div>
+    <div class="card">
+      <h3>{{ m.icon('shield', 22) }} Badges are facts</h3>
+      <p>Phone verified, ID checked, References, Trade skills. Each one is computed from records, never ticked by the fundi.</p>
+    </div>
+  </div>
+  <p class="mt-4"><a href="{{ url_for('public.trust') }}">Read how trust works {{ m.icon('arrow', 16) }}</a></p>
+</section>
+
+<section class="section-tight container">
+  <div class="row row-between">
+    <h2>Top of the ranking right now</h2>
+    <a href="{{ url_for('public.search') }}">See all fundis {{ m.icon('arrow', 16) }}</a>
+  </div>
+  <div class="results mt-3">
+    {% for c in cards %}{{ m.fundi_card(c) }}{% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Audit log · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Audit log</h1>{% include 'admin/_nav.html' %}<p class="lede">Every privileged action, newest first. There is no screen to edit or delete entries.</p></div>
+<div class="container">
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Detail</th></tr></thead>
+    <tbody>{% for e in entries %}<tr><td class="nowrap">{{ fmt_dt(e.created_at) }}</td><td>{{ e.actor.name if e.actor else 'system' }}</td><td><code>{{ e.action }}</code></td><td>{{ e.target_type }}{% if e.target_id %} #{{ e.target_id }}{% endif %}</td><td>{{ e.detail }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Nothing yet.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endblock %}

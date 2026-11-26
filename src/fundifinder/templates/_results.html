@@ -1,0 +1,6 @@
+{% import 'macros.html' as m with context %}
+<p class="muted" role="status">{{ total }} fundi{{ '' if total == 1 else 's' }} found.{% if cards|selectattr('boosted')|list %} Fundis marked <span class="chip chip-info">New on Fundi Finder</span> hold reserved slots so newcomers are not buried.{% endif %}</p>
+<div class="results">
+  {% include '_cards.html' %}
+  {% if not cards %}{{ m.empty('No fundis match yet', 'Try another area, or remove a filter. The sample data covers ' ~ (areas|length) ~ ' Nairobi neighbourhoods.') }}{% endif %}
+</div>

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Request a quote from {{ p.user.name }} · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head w-mid">
+  <p class="muted small"><a href="{{ url_for('public.profile', fundi_id=p.id) }}">{{ p.user.name }}</a> / Request a quote</p>
+  <h1>Request a quote from {{ p.user.name }}</h1>
+  {% if needs_phone %}
+    <div class="alert alert-warn">You need to verify your phone number before requesting quotes. <a href="{{ url_for('auth.verify_phone', next=request.full_path) }}">Verify now</a>.</div>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data" class="card" novalidate>
+    {{ m.csrf() }}
+    <input type="hidden" name="fundi" value="{{ p.id }}">
+    {% set job_options = [] %}
+    {% for s in p.services %}
+      {% set b = benchmarks.get(s.job_type_id) %}
+      {% set _ = job_options.append((s.job_type_id, s.job_type.name ~ ' (' ~ kes(s.price_min_kes) ~ ' – ' ~ kes(s.price_max_kes, bare=True) ~ ')' ~ (' · median paid ' ~ kes(b.median_kes) if b else ''))) %}
+    {% endfor %}
+    {{ m.select('job_type', 'What do you need done?', job_options, selected=form.get('job_type'), blank='Choose a job', required=True) }}
+    {{ m.select('area', 'Where is the job?', area_options, selected=form.get('area'), blank='Choose an area', required=True) }}
+    {{ m.textarea(form, 'description', 'Describe the job', hint='What is wrong, how big is it, anything the fundi should bring? At least 15 characters.', rows=5) }}
+    {{ m.field(form, 'preferred_time', 'Preferred date and time', type='datetime-local', value=form.get('preferred_time') or fmt_dt_input(default_time)) }}
+    <div class="field">
+      <label for="f-photo">Photo <span class="muted">(optional)</span></label>
+      <input id="f-photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="h-photo">
+      <span class="hint" id="h-photo">PNG, JPEG or WebP, up to 5 MB. Only you and {{ p.user.first_name }} can see it. Location data is stripped.</span>
+    </div>
+    <button class="btn" type="submit"{{ ' disabled' if needs_phone }}>Send request</button>
+  </form>
+</div>
+{% endblock %}

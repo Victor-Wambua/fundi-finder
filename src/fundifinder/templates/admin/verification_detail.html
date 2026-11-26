@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Review ID document · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Review ID document</h1>{% include 'admin/_nav.html' %}</div>
+<div class="container layout-side">
+  <section class="card">
+    <h2>{{ doc.fundi.user.name }}</h2>
+    <p class="muted small">Uploaded {{ fmt_dt(doc.created_at) }}. Opening this image is recorded in the audit log. It is served only to admins and is never cached.</p>
+    <img class="photo" src="{{ url_for('admin.document_file', doc_id=doc.id) }}" alt="Uploaded identity document for {{ doc.fundi.user.name }}" width="640">
+    <p class="muted small mt-2">Demo data: this is a synthetic placeholder, not a real document.</p>
+  </section>
+  <aside class="card">
+    <h2>Decision</h2>
+    {% if doc.status == IdStatus.PENDING %}
+    <form method="post" action="{{ url_for('admin.verification_decide', doc_id=doc.id) }}">
+      {{ m.csrf() }}
+      <div class="field"><label for="f-note">Note <span class="muted">(required if rejecting)</span></label><textarea id="f-note" name="note" rows="3" maxlength="300"></textarea></div>
+      <div class="row">
+        <button class="btn btn-ok" name="decision" value="approve" type="submit">Approve</button>
+        <button class="btn btn-danger" name="decision" value="reject" type="submit">Reject</button>
+      </div>
+    </form>
+    {% else %}<p>{{ m.status_chip(doc.status) }} {{ doc.review_note }}</p>{% endif %}
+  </aside>
+</div>
+{% endblock %}

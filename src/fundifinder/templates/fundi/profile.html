@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Profile and prices · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Profile &amp; prices</h1>{% include 'fundi/_nav.html' %}</div>
+<div class="container layout-side">
+  <form method="post" class="card" novalidate>
+    {{ m.csrf() }}
+    {% set v = form or {'headline': p.headline, 'bio': p.bio, 'years_experience': p.years_experience, 'whatsapp': p.whatsapp or ''} %}
+    {{ m.field(v, 'headline', 'Headline', hint='One line that says what you are good at.') }}
+    {{ m.textarea(v, 'bio', 'About you', required=False, rows=5, hint='Years on the job, what you are proud of, what you do not do.') }}
+    {{ m.field(v, 'years_experience', 'Years of experience', type='number', attrs='min="0" max="60"') }}
+    {{ m.select('trade', 'Trade', trade_options, selected=form.get('trade', p.trade.slug)) }}
+    {{ m.field(v, 'whatsapp', 'WhatsApp number', type='tel', required=False, hint='Leave empty to use your verified phone number.') }}
+    <fieldset>
+      <legend>Areas you work in</legend>
+      <div class="grid grid-3">
+        {% for a in areas %}<label class="check"><input type="checkbox" name="areas" value="{{ a.id }}"{{ ' checked' if a.id in chosen }}> {{ a.name }}</label>{% endfor %}
+      </div>
+      {% if errors.get('areas') %}<span class="error">{{ errors['areas'] }}</span>{% endif %}
+    </fieldset>
+    <button class="btn" type="submit">Save profile</button>
+  </form>
+  <aside class="card" id="services">
+    <h2>Services and prices</h2>
+    <p class="muted small">Indicative ranges in KES. Customers see these before they ask for a quote.</p>
+    {% for s in p.services %}
+    <div class="review">
+      <strong>{{ s.job_type.name }}</strong><br>
+      <span class="num">{{ kes(s.price_min_kes) }} – {{ kes(s.price_max_kes, bare=True) }}</span>
+      {% set b = benchmarks.get(s.job_type_id) %}{% if b %}<span class="muted small"> · customers paid a median {{ kes(b.median_kes) }}</span>{% endif %}
+      <form method="post" action="{{ url_for('fundi.service_delete', service_id=s.id) }}" class="inline-form">{{ m.csrf() }}<button class="linklike muted small" type="submit">Remove</button></form>
+    </div>
+    {% else %}<p class="muted">No services yet.</p>{% endfor %}
+    <form method="post" action="{{ url_for('fundi.service_save') }}" class="mt-4">
+      {{ m.csrf() }}
+      {{ m.select('job_type', 'Add or update a service', job_type_options, blank='Choose a job', required=True) }}
+      <div class="grid grid-2">
+        <div class="field"><label for="pmin">Lowest (KES)</label><input id="pmin" name="price_min" type="number" min="100" step="50" inputmode="numeric" required></div>
+        <div class="field"><label for="pmax">Highest (KES)</label><input id="pmax" name="price_max" type="number" min="100" step="50" inputmode="numeric" required></div>
+      </div>
+      <button class="btn btn-sm" type="submit">Save service</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

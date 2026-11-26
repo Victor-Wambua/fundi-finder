@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Verify your phone · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container section w-narrow">
+  <h1>Verify your phone</h1>
+  {% include 'auth/_otp.html' %}
+</div>
+{% endblock %}

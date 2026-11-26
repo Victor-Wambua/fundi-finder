@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Sign up · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container section w-narrow">
+  <h1>Create your account</h1>
+  <form method="post" class="card" novalidate>
+    {{ m.csrf() }}
+    <fieldset>
+      <legend>I am a</legend>
+      <label class="check"><input type="radio" name="role" value="customer"{{ ' checked' if form.get('role', 'customer') == 'customer' }}> Customer looking for a fundi</label>
+      <label class="check"><input type="radio" name="role" value="fundi"{{ ' checked' if form.get('role') == 'fundi' }}> Fundi looking for work</label>
+      {% if errors.get('role') %}<span class="error">{{ errors['role'] }}</span>{% endif %}
+    </fieldset>
+    {{ m.field(form, 'name', 'Full name', attrs='autocomplete="name"') }}
+    {{ m.field(form, 'email', 'Email', type='email', attrs='autocomplete="email"') }}
+    {{ m.field(form, 'phone', 'Mobile number', type='tel', hint='We send a one-time code to verify it. Example: 0700 000 001', attrs='autocomplete="tel" inputmode="tel"') }}
+    {{ m.select('trade', 'Your trade (fundis only)', trade_options, selected=form.get('trade'), blank='Choose a trade') }}
+    {{ m.field(form, 'password', 'Password', type='password', hint='At least 8 characters.', attrs='autocomplete="new-password" minlength="8"') }}
+    <button class="btn btn-block" type="submit">Create account</button>
+    <p class="muted small mt-3 mb-0">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Users · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Users</h1>{% include 'admin/_nav.html' %}
+  <form method="get" class="row">
+    <div class="field mb-0 grow"><label for="q">Search name, email or phone</label><input id="q" type="search" name="q" value="{{ q }}"></div>
+    <div class="field mb-0"><label for="role">Role</label><select id="role" name="role"><option value="">All</option>{% for r in ['customer', 'fundi', 'admin'] %}<option{{ ' selected' if role == r }}>{{ r }}</option>{% endfor %}</select></div>
+    <button class="btn btn-secondary" type="submit">Filter</button>
+  </form>
+</div>
+<div class="container">
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Phone</th><th scope="col">Joined</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Action</span></th></tr></thead>
+    <tbody>
+    {% for u in items %}
+      <tr><td>{{ u.name }}<div class="muted small">{{ u.email }}</div></td><td>{{ u.role }}</td><td class="nowrap">{{ u.phone }}{% if u.phone_verified_at %} <span class="chip chip-ok">verified</span>{% endif %}</td><td class="nowrap">{{ fmt_date(u.created_at) }}</td>
+      <td>{% if u.is_suspended %}<span class="chip chip-bad">Suspended</span>{% else %}<span class="chip chip-ok">Active</span>{% endif %}</td>
+      <td>{% if u.role != 'admin' %}<form method="post" action="{{ url_for('admin.user_suspend', user_id=u.id) }}" class="inline-form">{{ m.csrf() }}{% if u.is_suspended %}<button class="btn btn-sm btn-secondary" name="action" value="reinstate" type="submit">Reinstate</button>{% else %}<input type="hidden" name="reason" value="Suspended by admin"><button class="btn btn-sm btn-danger" name="action" value="suspend" type="submit">Suspend</button>{% endif %}</form>{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="muted small mt-2">Showing the 100 most recent matches.</p>
+</div>
+{% endblock %}

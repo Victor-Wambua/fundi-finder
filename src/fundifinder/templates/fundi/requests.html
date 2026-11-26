@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Requests · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Requests</h1>{% include 'fundi/_nav.html' %}</div>
+<div class="container">
+  {% for r in items %}
+  <div class="card card-tight mt-3 row row-between">
+    <div class="grow"><strong><a href="{{ url_for('fundi.request_detail', request_id=r.id) }}">{{ r.job_type.name }}</a></strong> · {{ r.area.name }}
+      <div class="muted small">{{ r.customer.first_name }} · sent {{ fmt_date(r.created_at) }} · wanted {{ fmt_dt(r.preferred_time) }}</div></div>
+    {{ m.status_chip(r.status) }}
+  </div>
+  {% else %}{{ m.empty('No requests yet', 'Requests from customers land here. Reply within 24 hours to keep your reply-rate up.') }}{% endfor %}
+</div>
+{% endblock %}

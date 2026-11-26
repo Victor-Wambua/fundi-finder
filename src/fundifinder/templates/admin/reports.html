@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Reports · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head"><h1>Reports and appeals</h1>{% include 'admin/_nav.html' %}</div>
+<div class="container stack-lg">
+  <section>
+    <h2>Open reports ({{ open_reports|length }})</h2>
+    {% for r in open_reports %}
+    <article class="card mt-3">
+      <div class="row row-between"><strong>{{ 'Review' if r.target == 'review' else 'Fundi reply' }} on {{ r.review.fundi.user.name }}</strong><span class="chip chip-warn">{{ reasons.get(r.reason, r.reason) }}</span></div>
+      <div class="row mt-2">{{ m.stars(r.review.rating) }}<span class="muted small">by {{ r.review.customer.name }} · reported by {{ r.reporter.name }} {{ fmt_date(r.created_at) }}</span></div>
+      {% if r.target == 'review' %}<blockquote>{{ r.review.body or '(no text)' }}</blockquote>{% else %}<blockquote>{{ r.review.reply_body }}</blockquote>{% endif %}
+      {% if r.detail %}<p class="small"><strong>Reporter says:</strong> {{ r.detail }}</p>{% endif %}
+      <form method="post" action="{{ url_for('admin.report_resolve', report_id=r.id) }}" class="row">
+        {{ m.csrf() }}
+        <label class="visually-hidden" for="n{{ r.id }}">Decision note</label>
+        <input class="grow" id="n{{ r.id }}" name="note" placeholder="Note for the audit log" maxlength="300">
+        <button class="btn btn-danger btn-sm" name="decision" value="uphold" type="submit">Remove content</button>
+        <button class="btn btn-secondary btn-sm" name="decision" value="dismiss" type="submit">Dismiss</button>
+      </form>
+    </article>
+    {% else %}<div class="mt-3">{{ m.empty('No open reports', 'Nothing to moderate.') }}</div>{% endfor %}
+  </section>
+  <section>
+    <h2>Pending appeals ({{ appeals|length }})</h2>
+    {% for r in appeals %}
+    <article class="card mt-3">
+      <strong>{{ 'Review' if r.target == 'review' else 'Reply' }} on {{ r.review.fundi.user.name }}</strong>
+      <blockquote>{{ r.review.body if r.target == 'review' else r.review.reply_body }}</blockquote>
+      <p class="small"><strong>Appeal:</strong> {{ r.appeal_text }}</p>
+      <p class="muted small">Original decision by admin #{{ r.resolved_by_id }}: {{ r.resolution_note or 'no note' }}. A different admin must decide.</p>
+      <form method="post" action="{{ url_for('admin.appeal_decide', report_id=r.id) }}" class="row">
+        {{ m.csrf() }}
+        <label class="visually-hidden" for="a{{ r.id }}">Decision note</label>
+        <input class="grow" id="a{{ r.id }}" name="note" placeholder="Note for the audit log" maxlength="300">
+        <button class="btn btn-ok btn-sm" name="decision" value="accept" type="submit">Restore content</button>
+        <button class="btn btn-danger btn-sm" name="decision" value="reject" type="submit">Uphold takedown</button>
+      </form>
+    </article>
+    {% else %}<p class="muted mt-3">No appeals waiting.</p>{% endfor %}
+  </section>
+  <section>
+    <h2>Recently resolved</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Fundi</th><th scope="col">Target</th><th scope="col">Outcome</th><th scope="col">Appeal</th><th scope="col">When</th></tr></thead>
+      <tbody>{% for r in recent %}<tr><td>{{ r.review.fundi.user.name }}</td><td>{{ r.target }}</td><td>{{ m.status_chip(r.status) }}</td><td>{{ m.status_chip(r.appeal_status) if r.appeal_status != 'none' else '—' }}</td><td class="nowrap">{{ fmt_date(r.resolved_at) }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+</div>
+{% endblock %}

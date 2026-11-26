@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}{{ p.user.name }}, {{ p.trade.name|lower }} · Fundi Finder{% endblock %}
+{% block description %}{{ p.user.name }} has {{ card.completed_jobs }} confirmed jobs and {{ card.review_count }} reviews from confirmed jobs on Fundi Finder.{% endblock %}
+{% block content %}
+<div class="container page-head">
+  <p class="muted small"><a href="{{ url_for('public.search', trade=p.trade.slug) }}">{{ p.trade.plural }}</a> / {{ p.user.name }}</p>
+</div>
+<div class="container layout-side">
+  <div class="stack-lg">
+    <section class="card" aria-labelledby="who">
+      <div class="fcard-head">
+        <div class="avatar avatar-lg av-{{ p.id % 8 }}" aria-hidden="true">{{ p.user.name[0] }}</div>
+        <div>
+          <h1 id="who" class="mb-0">{{ p.user.name }}</h1>
+          <div class="muted">{{ m.trade_icon(p.trade.slug, 18) }} {{ p.trade.name }} · {{ p.years_experience }} years' experience</div>
+          <div class="rating mt-2">
+            {% if card.raw_average is not none %}{{ m.icon('star', 18) }}<span class="num">{{ '%.1f'|format(card.raw_average) }}</span><span class="muted fw-normal">from {{ card.review_count }} review{{ '' if card.review_count == 1 else 's' }}, each tied to a confirmed job</span>
+            {% else %}<span class="muted fw-normal">No reviews yet. Every review here is tied to a confirmed job.</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% if p.headline %}<p class="headline"><strong>{{ p.headline }}</strong></p>{% endif %}
+      {% if p.bio %}<p>{{ p.bio }}</p>{% endif %}
+      <div class="chips">
+        {% for b in card.badges %}{{ m.badge_chip(b) }}{% endfor %}
+        {% if not card.badges %}<span class="chip chip-off">Not verified yet</span>{% endif %}
+        {% if card.is_new %}<span class="chip chip-info">{{ m.icon('sparkle', 14) }}New on Fundi Finder</span>{% endif %}
+      </div>
+      <p class="muted small mt-3 mb-0">{{ m.icon('pin', 14) }} Works in {{ p.areas|map(attribute='name')|join(', ') }}</p>
+    </section>
+
+    <section aria-labelledby="proof">
+      <h2 id="proof">The record</h2>
+      <div class="grid grid-4">
+        <div class="stat"><span class="value num">{{ card.completed_jobs }}</span><span class="label">jobs completed and confirmed</span></div>
+        <div class="stat"><span class="value num">{{ recent }}</span><span class="label">completed in the last 90 days</span></div>
+        <div class="stat"><span class="value num">{% if card.median_response_hours is not none %}{{ response_label(card.median_response_hours) }}{% else %}—{% endif %}</span><span class="label">typical reply time</span></div>
+        <div class="stat"><span class="value num">{% if card.stats.punctual_eligible >= 3 %}{{ (100 * card.breakdown.punctuality)|round|int }}%{% else %}—{% endif %}</span><span class="label">arrive on time{% if card.stats.punctual_eligible < 3 %} (needs 3+ jobs){% endif %}</span></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="services">
+      <h2 id="services">Services and prices</h2>
+      <p class="muted small">Indicative ranges set by the fundi. Where five or more jobs of that type were completed on Fundi Finder, you also see what customers actually paid.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Job</th><th scope="col">Fundi's range</th><th scope="col">What customers paid (platform-wide)</th></tr></thead>
+          <tbody>
+            {% for s in p.services %}
+            {% set b = benchmarks.get(s.job_type_id) %}
+            <tr>
+              <th scope="row" class="fw-normal">{{ s.job_type.name }}</th>
+              <td class="num nowrap">{{ kes(s.price_min_kes) }} – {{ kes(s.price_max_kes, bare=True) }}</td>
+              <td class="num">{% if b %}Median <strong>{{ kes(b.median_kes) }}</strong><br><span class="muted small">typical {{ kes(b.low_kes) }} – {{ kes(b.high_kes, bare=True) }} · {{ b.sample_size }} jobs</span>{% else %}<span class="muted small">Not enough jobs yet (needs 5)</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="reviews">
+      <h2 id="reviews">Reviews from confirmed jobs</h2>
+      {% if card.review_count %}
+      <div class="grid grid-2">
+        <div>
+          {{ m.hist(card.histogram, card.review_count) }}
+        </div>
+        <div>
+          <p><strong>{{ (100 * positive / card.review_count)|round|int }}%</strong> of {{ card.review_count }} reviews were 4 or 5 stars. Allowing for the small sample, we are 95% sure the true figure is at least <strong>{{ (100 * wilson)|round|int }}%</strong>.</p>
+          <p class="muted small">Why the second number? A fundi with 3 of 3 happy customers has not proven they are 100% reliable. The lower bound keeps small samples honest.</p>
+        </div>
+      </div>
+      {% endif %}
+      <div class="mt-4">
+        {% for r in reviews %}
+        <article class="review" id="review-{{ r.id }}">
+          <div class="row">
+            {{ m.stars(r.rating) }}
+            <strong>{{ reviewer_label(r.customer.name) }}</strong>
+            <span class="muted small">{{ fmt_date(r.created_at) }}{% if r.edited_at %} · edited{% endif %}</span>
+            <span class="chip chip-ok">{{ m.icon('check', 14) }}Confirmed job: {{ r.job.job_type.name }}</span>
+          </div>
+          {% if r.body %}<blockquote>{{ r.body }}</blockquote>{% endif %}
+          {% if r.reply_body and not r.reply_removed %}
+            <div class="reply"><strong>{{ p.user.first_name }} replied</strong> <span class="muted small">{{ fmt_date(r.reply_at) }}</span><br>{{ r.reply_body }}</div>
+          {% elif r.reply_removed %}
+            <div class="reply muted">A reply was removed by moderators.</div>
+          {% endif %}
+          {% if viewer and viewer.id != r.customer_id %}
+          <details class="mt-2 small">
+            <summary>Report</summary>
+            <form method="post" action="{{ url_for('customer.report_review', review_id=r.id) }}" class="stack mt-2">
+              {{ m.csrf() }}
+              <div class="field mb-0">
+                <label for="rt-{{ r.id }}">What are you reporting?</label>
+                <select id="rt-{{ r.id }}" name="target">
+                  <option value="review">The review</option>
+                  {% if r.reply_body and not r.reply_removed and not (p.user_id == viewer.id) %}<option value="reply">The fundi's reply</option>{% endif %}
+                </select>
+              </div>
+              <div class="field mb-0">
+                <label for="rr-{{ r.id }}">Reason</label>
+                <select id="rr-{{ r.id }}" name="reason">
+                  <option value="fake">Looks fake or paid for</option>
+                  <option value="not_customer">Reviewer was not a real customer of this fundi</option>
+                  <option value="abusive">Abusive or discriminatory language</option>
+                  <option value="personal">Shares personal information</option>
+                  <option value="other">Something else</option>
+                </select>
+              </div>
+              <div class="field mb-0"><label for="rd-{{ r.id }}">Details <span class="muted">(optional)</span></label><textarea id="rd-{{ r.id }}" name="detail" rows="2" maxlength="500"></textarea></div>
+              <button class="btn btn-sm btn-secondary" type="submit">{{ m.icon('flag', 16) }} Send report</button>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}
+          <p class="muted">No reviews yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if p.photos %}
+    <section aria-labelledby="work">
+      <h2 id="work">Portfolio</h2>
+      <div class="gallery">
+        {% for ph in p.photos %}
+        <figure><img src="{{ url_for('public.portfolio_image', name=ph.storage_name) }}" alt="{{ ph.caption or 'Portfolio photo' }}" loading="lazy" width="320" height="240"><figcaption>{{ ph.caption }}</figcaption></figure>
+        {% endfor %}
+      </div>
+      <p class="muted small mt-2">Sample build: these are generated placeholder images, not real work.</p>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="stack sticky" aria-label="Book and contact">
+    <div class="card">
+      <h2>Request a quote</h2>
+      <p class="muted small">Describe the job and add a photo. {{ p.user.first_name }} replies with a price. Nothing is charged: payment is between you and the fundi.</p>
+      {% if viewer and not viewer.is_customer %}
+        <p class="alert">Only customer accounts can request quotes.</p>
+      {% else %}
+        <a class="btn btn-block" href="{{ url_for('customer.new_request', fundi=p.id) }}">{{ m.icon('plus', 18) }} Request a quote</a>
+      {% endif %}
+      <div class="grid mt-3">
+        <a class="btn btn-secondary btn-block" href="{{ wa_url }}" rel="noopener" target="_blank">{{ m.icon('chat', 18) }} WhatsApp</a>
+        <a class="btn btn-secondary btn-block" href="{{ tel_url }}">{{ m.icon('call', 18) }} Call {{ contact_display }}</a>
+      </div>
+      <p class="muted small mt-3 mb-0">Sample number, not a real phone. Book through Fundi Finder so the job can earn a confirmed review.</p>
+    </div>
+    <div class="card">
+      <h3>{{ m.icon('calendar', 20) }} Availability</h3>
+      <div class="weekgrid" role="img" aria-label="Working days: {{ availability }}">
+        {% for name, on in weekdays %}<span class="{{ 'on' if on }}">{{ name }}</span>{% endfor %}
+      </div>
+      <p class="small mt-2 mb-0">{{ availability }}</p>
+      <p class="mt-2 mb-0">{% if card.available_this_week %}<span class="chip chip-ok">Available this week</span>{% else %}<span class="chip chip-off">Fully booked this week</span>{% endif %}</p>
+    </div>
+    <div class="card">
+      <h3>{{ m.icon('shield', 20) }} Verification</h3>
+      <ul class="badge-list">
+        {% for key, label, why, earned in all_badges %}
+        <li>
+          <span class="chip {{ 'chip-ok' if earned else 'chip-off' }}">{{ m.icon('check' if earned else 'plus', 14) }}{{ label }}</span>
+          <span class="why">{{ why }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="card">
+      <h3>{{ m.icon('star', 20) }} Why ranked here</h3>
+      <p class="small muted">Score {{ '%.1f'|format(card.score) }} out of 100. <a href="{{ url_for('public.trust') }}#ranking">How it works</a></p>
+      <div class="breakdown">
+        {% for label, pts in card.breakdown.components.items() %}<div><span>{{ label }}</span><span class="num">{{ pts }}</span></div>{% endfor %}
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

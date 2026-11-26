@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as m with context %}
+{% block title %}Moderation notices · Fundi Finder{% endblock %}
+{% block content %}
+<div class="container page-head w-mid">
+  <h1>Moderation notices</h1>
+  <p class="lede">Content of yours that moderators removed. You can appeal once within 14 days; a different admin decides.</p>
+  {% for r in reports %}
+  <div class="card mt-4">
+    <div class="row row-between"><strong>{{ 'Your review' if r.target == 'review' else 'Your reply' }} on {{ r.review.fundi.user.name }}</strong>{{ m.status_chip(r.appeal_status if r.appeal_status != 'none' else 'removed') }}</div>
+    <p class="muted small">Removed {{ fmt_date(r.resolved_at) }}. Reason reported: {{ r.reason|replace('_', ' ') }}. Moderator note: {{ r.resolution_note or 'none' }}</p>
+    {% if r.appeal_status == AppealStatus.NONE %}
+    <form method="post" action="{{ url_for('customer.appeal', report_id=r.id) }}">
+      {{ m.csrf() }}
+      <div class="field"><label for="ap-{{ r.id }}">Why was this wrong?</label><textarea id="ap-{{ r.id }}" name="text" rows="3" maxlength="800" required></textarea></div>
+      <button class="btn btn-sm" type="submit">Submit appeal</button>
+    </form>
+    {% else %}
+      <p class="mb-0"><strong>Your appeal:</strong> {{ r.appeal_text }}</p>
+      {% if r.appeal_decision_note %}<p class="mb-0 muted small">Decision note: {{ r.appeal_decision_note }}</p>{% endif %}
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="mt-4">{{ m.empty('Nothing removed', 'No content of yours has been taken down.') }}</div>
+  {% endfor %}
+</div>
+{% endblock %}
