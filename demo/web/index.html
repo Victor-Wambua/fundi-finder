@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundi Finder demo</title>
+<meta name="description" content="Fundi Finder's real Python code running in your browser on invented data: find a fundi, book a job, and see why a review needs a confirmed one-time code.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<div class="banner" role="note" aria-label="About this demo">
+  <div class="wrap">
+    <p><strong>Static demo.</strong> Runs in your browser on invented data; nothing is sent anywhere. The real project is a Flask web app with a SQLite database: <a href="https://github.com/Victor-Wambua/fundi-finder">code on GitHub</a> and <a href="https://github.com/Victor-Wambua/fundi-finder#readme">README</a>.</p>
+  </div>
+</div>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="#/"><img src="assets/favicon.svg" alt="" width="26" height="26">Fundi Finder <small>demo</small></a>
+    <nav aria-label="Main">
+      <a href="#/" data-nav="find">Find a fundi</a>
+      <a href="#/bookings" data-nav="bookings">My bookings</a>
+      <a href="#/how" data-nav="how">How this demo works</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap" tabindex="-1" aria-busy="true">
+  <div class="loading">
+    <h1>Starting the demo</h1>
+    <p class="lede">Loading Fundi Finder's Python code into your browser. This needs about 16 MB the first time and then works offline.</p>
+    <p><progress aria-label="Loading progress"></progress></p>
+    <p id="boot-step" class="note" role="status">Loading the page.</p>
+    <noscript><p class="msg bad">This demo runs Python in your browser, so it needs JavaScript and WebAssembly. Turn JavaScript on to use it.</p></noscript>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p id="foot-build">Built by Victor Wambua. MIT licence.</p>
+    <p><a href="https://github.com/Victor-Wambua/fundi-finder">Source on GitHub</a></p>
+    <p><a href="vendor/NOTICE.md">Third-party licences</a></p>
+    <p><button type="button" class="linkish" id="foot-reset" hidden>Reset demo data</button></p>
+  </div>
+</footer>
+
+<div id="live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>

@@ -46,6 +46,8 @@ ignore = ["E501", "PLC0415", "PLR0917", "PLW0603", "PLW2901", "UP047", "C408", "
 "tests/*" = ["S", "PLR", "B011"]
 "src/fundifinder/seed.py" = ["S", "B007"]
 "src/fundifinder/__init__.py" = ["S105"]
+"demo/engine/demo_engine.py" = ["S105", "S106"]
+"demo/build.py" = ["S603", "S607"]
 
 [tool.mypy]
 python_version = "3.12"

@@ -11,3 +11,6 @@ htmlcov/
 dist/
 *.egg-info/
 .DS_Store
+demo/_site/
+demo/node_modules/
+demo/smoke-failure.png
