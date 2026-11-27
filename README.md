@@ -7,11 +7,21 @@
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776ab)
 ![Flask 3](https://img.shields.io/badge/flask-3-000000)
 
+**[Try the live demo](https://victor-wambua.github.io/fundi-finder/)**: the real Python code, running in your browser on invented data.
+
 > **Status:** portfolio build. Runs locally with synthetic sample data. No payments, no real SMS, not field-tested.
 
 ![Fundi Finder home page](docs/screenshots/01-home.png)
 
 *Fundi* is Swahili for a skilled artisan: plumber, electrician, mason, tailor.
+
+## Live demo
+
+[victor-wambua.github.io/fundi-finder](https://victor-wambua.github.io/fundi-finder/) runs this repository's own domain code (`models`, `queries`, `ranking`, `marketplace`, `lifecycle`, `completion`, `reviews`) in the browser with Pyodide, SQLAlchemy and an in-memory SQLite database, all served from the repo's files. Nothing is sent anywhere, and it works offline after the first load.
+Real: search and ranking, quotes, booking, the job state machine, completion codes (wrong, locked, disabled, reused) and the review gate. Simulated: the people, jobs and reviews (invented), the web layer (Flask routes, sessions, login), the clock (you can skip it), and the actor for each button, since one visitor plays both customer and fundi.
+The code secret is visible in the browser, so the demo shows how the code works, not how it stays secret. Not shown: uploads, ID review, SMS, reports, abuse queue. Source in [`demo/`](demo/); `make demo` builds and serves it on port 8950, `make demo-test` runs the Playwright smoke test. CI builds the demo and runs that test on every push.
+
+![Completion code gate in the demo](docs/screenshots/demo-03-code-gate.png)
 
 ## The problem
 
@@ -119,7 +129,7 @@ make test        # uv run pytest
 make check       # ruff + format check + mypy + pytest
 ```
 
-**313 tests, all passing, offline, about 30 seconds. Line coverage 88%.** Ruff and mypy
+**325 tests, all passing, offline, about 30 seconds. Line coverage 88%.** Ruff and mypy
 (strict) are clean, and CI runs lint, type check and tests on every push.
 
 | Area | Tests |
@@ -156,6 +166,7 @@ src/fundifinder/
   templates/, static/
 tests/               pytest suite
 docs/                CASE-STUDY.md, RANKING.md, screenshots/
+demo/                static browser demo: engine (Python), page, vendored Pyodide, smoke test
 ```
 
 ## Configuration
