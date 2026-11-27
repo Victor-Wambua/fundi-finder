@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from flask import Flask, g
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+if TYPE_CHECKING:
+    from flask import Flask
+
+# Flask is imported inside the functions that need it, so the models and the domain modules
+# can be imported (and run, for example in the browser demo) without the web framework.
 
 
 class Base(DeclarativeBase):
@@ -28,6 +33,8 @@ def make_engine(url: str) -> Engine:
 
 
 def init_db(app: Flask) -> None:
+    from flask import g
+
     engine = make_engine(app.config["DATABASE_URL"])
     app.extensions["engine"] = engine
     app.extensions["sessionmaker"] = sessionmaker(engine, expire_on_commit=False)
@@ -40,9 +47,9 @@ def init_db(app: Flask) -> None:
 
 
 def get_db() -> Session:
-    if "db" not in g:
-        from flask import current_app
+    from flask import current_app, g
 
+    if "db" not in g:
         g.db = current_app.extensions["sessionmaker"]()
     session: Session = g.db
     return session

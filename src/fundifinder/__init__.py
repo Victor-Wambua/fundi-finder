@@ -5,21 +5,26 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from flask import Flask, render_template
-from werkzeug.exceptions import HTTPException
-
-from .config import default_config
-from .db import create_all, init_db
-from .security import init_security
-from .sms import make_provider
-from .uploads import Storage
+if TYPE_CHECKING:
+    from flask import Flask
 
 __version__ = "0.1.0"
 
 
 def create_app(config: dict[str, Any] | None = None) -> Flask:
+    # Web-only imports live here so that ``import fundifinder.models`` and the other domain
+    # modules do not need Flask (the browser demo runs them without it).
+    from flask import Flask, render_template
+    from werkzeug.exceptions import HTTPException
+
+    from .config import default_config
+    from .db import create_all, init_db
+    from .security import init_security
+    from .sms import make_provider
+    from .uploads import Storage
+
     app = Flask(__name__)
     app.config.update(default_config())
     if config:
